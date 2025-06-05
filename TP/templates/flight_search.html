@@ -8,11 +8,12 @@
 <body>
   <div class="container">
     <header>
-      <h2>CNU Airline Reservation Web</h2>
-      <div class="user-info">
-        <span><strong>user</strong>님, 환영합니다.</span>
-        <button class="logout-btn">LOGOUT</button>
-      </div>
+        <h2>CNU Airline Reservation Web</h2>
+        <div class="user-info">
+            <span><strong>user</strong>님, 환영합니다.</span>
+            <a href="{{ url_for('flight_check') }}" class="nav-btn">예약 내역</a>
+            <button class="logout-btn">LOGOUT</button>
+        </div>
     </header>
 
     <main>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>항공권 예약내역 조회 / 취소</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='flight_check.css') }}">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h2>CNU Airline Reservation Web</h2>
+      <div class="user-info">
+        <span><strong>user</strong>님, 환영합니다.</span>
+        <a href="{{ url_for('flight_search') }}" class="nav-btn">항공권 검색</a>
+        <button class="logout-btn">LOGOUT</button>
+      </div>
+    </header>
+
+    <main>
+      <h1>항공권 예약내역 조회 / 취소 ✈️</h1>
+
+      <form class="search-form">
+        <div class="form-row">
+            <label>기간 설정</label>
+            <input type="date" name="start_date">
+            <span>~</span>
+            <input type="date" name="end_date">
+        </div>
+        <div class="form-row">
+            <button type="submit">검색</button>
+            <button type="button">필터</button>
+        </div>
+        </form>
+
+
+      <table class="result-table">
+        <thead>
+          <tr>
+            <th>항공사명</th>
+            <th>운항편명</th>
+            <th>출발공항</th>
+            <th>도착공항</th>
+            <th>출발날짜시간</th>
+            <th>도착날짜시간</th>
+            <th>요금</th>
+            <th>취소</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in range(5) %}
+          <tr>
+            <td colspan="7">내용~~~~</td>
+            <td><button class="cancel-btn">취소</button></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </main>
+  </div>
+</body>
+</html>

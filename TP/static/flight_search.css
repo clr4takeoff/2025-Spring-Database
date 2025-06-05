@@ -119,3 +119,18 @@ main h1 {
   font-weight: bold;
   cursor: pointer;
 }
+
+.nav-btn {
+  background-color: #ccc;
+  color: #000;
+  padding: 8px 16px;
+  margin-left: 10px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: bold;
+  border: none;
+}
+
+.nav-btn:hover {
+  background-color: #bbb;
+}

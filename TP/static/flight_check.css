@@ -1,0 +1,110 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #fff;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 960px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logout-btn, .nav-btn {
+  background: #ddd;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+  color: black;
+}
+
+.logout-btn:hover,
+.nav-btn:hover {
+  background-color: #bbb;
+}
+
+main h1 {
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+.search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.form-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.form-row input {
+  padding: 10px;
+  border: 1px solid #aaa;
+  border-radius: 14px;
+  font-size: 14px;
+  width: 220px;
+}
+
+.form-row span {
+  font-size: 18px;
+}
+
+.form-row button {
+  padding: 10px 20px;
+  background-color: #ddd;
+  border: none;
+  border-radius: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.form-row button:hover {
+  background-color: #bbb;
+}
+
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.result-table th,
+.result-table td {
+  border: 1px solid #aaa;
+  padding: 10px;
+  text-align: center;
+}
+
+.cancel-btn {
+  padding: 6px 12px;
+  border: none;
+  background-color: #aaa;
+  color: #fff;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.cancel-btn:hover {
+  background-color: #888;
+}
