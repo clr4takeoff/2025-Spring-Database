@@ -136,3 +136,43 @@ def get_user_reservations(cno, start_date, end_date, view_type):
 
 def is_admin(cno):
     return cno.startswith('C0')
+
+def get_cancel_ratio():
+    conn = get_connection()
+    cur = conn.cursor()
+    query = """
+    SELECT c.cno, c.name,
+        COUNT(DISTINCT r.flightNo) AS total_reserves,
+        COUNT(DISTINCT ca.flightNo) AS total_cancels,
+        CASE WHEN COUNT(DISTINCT r.flightNo) = 0 THEN 0
+             ELSE ROUND(COUNT(DISTINCT ca.flightNo) / COUNT(DISTINCT r.flightNo), 2)
+        END AS cancel_ratio
+    FROM CUSTOMER c
+    LEFT JOIN RESERVE r ON c.cno = r.cno
+    LEFT JOIN CANCEL ca ON c.cno = ca.cno
+    GROUP BY c.cno, c.name
+    ORDER BY cancel_ratio DESC NULLS LAST
+    """
+    cur.execute(query)
+    result = cur.fetchall()
+    cur.close()
+    conn.close()
+    return result
+
+
+def get_payment_rank():
+    conn = get_connection()
+    cur = conn.cursor()
+    query = """
+    SELECT r.cno, r.reserveDateTime, r.payment,
+           RANK() OVER (
+               PARTITION BY r.cno
+               ORDER BY r.payment DESC
+           ) AS payment_rank
+    FROM RESERVE r
+    """
+    cur.execute(query)
+    result = cur.fetchall()
+    cur.close()
+    conn.close()
+    return result

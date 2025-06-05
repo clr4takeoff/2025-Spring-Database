@@ -1,5 +1,5 @@
 from flask import Flask, request, redirect, render_template, url_for, session
-from db_utils import get_connection, verify_user, get_flights, get_user_reservations, is_admin
+from db_utils import get_connection, verify_user, get_flights, get_user_reservations, is_admin, get_cancel_ratio, get_payment_rank
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -66,7 +66,18 @@ def logout():
 def admin_page():
     if 'cno' not in session or not is_admin(session['cno']):
         return redirect(url_for('login'))
-    return render_template('admin.html', name=session['name'])
+
+    view = request.args.get('view', 'cancel')  # 기본값: 취소율
+
+    if view == 'cancel':
+        result = get_cancel_ratio()  # → db_utils 함수
+    elif view == 'payment':
+        result = get_payment_rank()
+    else:
+        result = []
+
+    return render_template('admin.html', name=session['name'], view=view, results=result)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
