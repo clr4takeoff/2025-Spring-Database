@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>항공권 검색/예약</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='flight_search.css') }}">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h2>CNU Airline Reservation Web</h2>
+      <div class="user-info">
+        <span><strong>user</strong>님, 환영합니다.</span>
+        <button class="logout-btn">LOGOUT</button>
+      </div>
+    </header>
+
+    <main>
+      <h1>항공권 검색/예약 ✈️</h1>
+
+      <form class="search-form">
+        <div class="form-row">
+            <input type="text" placeholder="출발 공항 입력 (예: JFK)">
+            <input type="text" placeholder="도착 공항 입력 (예: ICN)">
+        </div>
+
+        <div class="form-row single-line">
+            <input type="text" placeholder="출발 날짜 입력 (예: 2025.06.14.)">
+            <select>
+            <option disabled selected>드롭박스 (이코노미, 비즈니스)</option>
+            <option>이코노미</option>
+            <option>비즈니스</option>
+            </select>
+            <button type="submit">검색</button>
+            <button type="button">필터</button>
+        </div>
+        </form>
+
+
+      <table class="result-table">
+        <thead>
+          <tr>
+            <th>항공사명</th>
+            <th>운항편명</th>
+            <th>출발공항</th>
+            <th>도착공항</th>
+            <th>출발날짜시간</th>
+            <th>도착날짜시간</th>
+            <th>요금</th>
+            <th>남은 좌석 수</th>
+            <th>예약</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="8">내용~~~~</td>
+            <td><button class="reserve-btn">예약</button></td>
+          </tr>
+          <tr>
+            <td colspan="8">내용~~~~</td>
+            <td><button class="reserve-btn">예약</button></td>
+          </tr>
+          <tr>
+            <td colspan="8">내용~~~~</td>
+            <td><button class="reserve-btn">예약</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </main>
+  </div>
+</body>
+</html>

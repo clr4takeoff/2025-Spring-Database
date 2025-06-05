@@ -1,0 +1,121 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #fff;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 960px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logout-btn {
+  background: #ddd;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+main h1 {
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+.search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.form-row {
+  display: flex;
+  gap: 10px;
+}
+
+.form-row.single-line input,
+.form-row.single-line select,
+.form-row.single-line button {
+  height: 42px;
+  font-size: 14px;
+  border-radius: 14px;
+  padding: 0 14px;
+  border: 1px solid #aaa;
+  box-sizing: border-box;
+}
+
+.form-row.single-line input {
+  width: 200px;
+}
+
+.form-row.single-line select {
+  width: 180px;
+}
+
+.form-row.single-line button {
+  width: 80px;
+  background-color: #ddd;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.form-row.single-line button:hover {
+  background-color: #bbb;
+}
+
+.search-form input,
+.search-form select {
+  padding: 10px;
+  flex: 1;
+  border: 1px solid #aaa;
+  border-radius: 16px;
+  font-size: 14px;
+}
+
+.search-form button {
+  padding: 10px 20px;
+  background-color: #ddd;
+  border: none;
+  border-radius: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.result-table th,
+.result-table td {
+  border: 1px solid #aaa;
+  padding: 10px;
+  text-align: center;
+}
+
+.reserve-btn {
+  padding: 6px 12px;
+  border: none;
+  background-color: #ccc;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
