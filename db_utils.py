@@ -7,6 +7,7 @@ def get_connection():
         dsn="localhost:1521/XE"
     )
 
+
 def verify_user(cursor, email, password):
     query = """
         SELECT cno, name FROM CUSTOMER 
@@ -132,3 +133,6 @@ def get_user_reservations(cno, start_date, end_date, view_type):
     cur.close()
     conn.close()
     return results
+
+def is_admin(cno):
+    return cno.startswith('C0')

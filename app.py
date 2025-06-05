@@ -1,5 +1,5 @@
 from flask import Flask, request, redirect, render_template, url_for, session
-from db_utils import get_connection, verify_user, get_flights, get_user_reservations
+from db_utils import get_connection, verify_user, get_flights, get_user_reservations, is_admin
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -20,12 +20,10 @@ def login():
     password = request.form['password']
     user = verify_user(cursor, email, password)
 
-    if user:
-        session['cno'] = user[0]
-        session['name'] = user[1]
-        return redirect(url_for('flight_search'))
+    if is_admin(user[0]):
+        return redirect(url_for('admin_page'))
     else:
-        return render_template('login.html', error='Invalid email or password')
+        return redirect(url_for('flight_search'))
 
 @app.route('/flight_search', methods=['GET'])
 def flight_search():
@@ -58,12 +56,17 @@ def flight_check():
     return render_template('flight_check.html', reservations=reservations)
 
 
-
-
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
+
+
+@app.route('/admin')
+def admin_page():
+    if 'cno' not in session or not is_admin(session['cno']):
+        return redirect(url_for('login'))
+    return render_template('admin.html', name=session['name'])
 
 if __name__ == '__main__':
     app.run(debug=True)
