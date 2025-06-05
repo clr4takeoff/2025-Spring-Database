@@ -74,3 +74,53 @@ def get_reservations(cursor, cno):
     """
     cursor.execute(query, {'cno': cno})
     return cursor.fetchall()
+
+
+def get_user_reservations(cno, start_date, end_date, view_type):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    base_conditions = "cno = :cno"
+    params = {'cno': cno}
+
+    if start_date and end_date:
+        base_conditions += " AND r.departureDateTime BETWEEN :start_date AND :end_date"
+        params['start_date'] = start_date
+        params['end_date'] = end_date
+
+    queries = []
+
+    if view_type in ('all', 'reserve'):
+        queries.append(f"""
+            SELECT 
+                a.airline, r.flightNo, a.departureAirport, a.arrivalAirport,
+                TO_CHAR(a.departureDateTime, 'YYYY-MM-DD HH24:MI'),
+                TO_CHAR(a.arrivalDateTime, 'YYYY-MM-DD HH24:MI'),
+                r.payment, NULL AS cancelDateTime, '예약' AS status
+            FROM RESERVE r
+            JOIN AIRPLANE a ON r.flightNo = a.flightNo AND r.departureDateTime = a.departureDateTime
+            WHERE {base_conditions}
+        """)
+
+    if view_type in ('all', 'cancel'):
+        queries.append(f"""
+            SELECT 
+                a.airline, c.flightNo, a.departureAirport, a.arrivalAirport,
+                TO_CHAR(a.departureDateTime, 'YYYY-MM-DD HH24:MI'),
+                TO_CHAR(a.arrivalDateTime, 'YYYY-MM-DD HH24:MI'),
+                c.refund, TO_CHAR(c.cancelDateTime, 'YYYY-MM-DD HH24:MI'), '취소' AS status
+            FROM CANCEL c
+            JOIN AIRPLANE a ON c.flightNo = a.flightNo AND c.departureDateTime = a.departureDateTime
+            WHERE {base_conditions}
+        """)
+
+    if not queries:
+        return []
+
+    full_query = " UNION ALL ".join(queries) + " ORDER BY 5"  # 출발일 기준 정렬
+    cur.execute(full_query, params)
+    results = cur.fetchall()
+
+    cur.close()
+    conn.close()
+    return results

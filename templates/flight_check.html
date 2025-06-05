@@ -18,23 +18,23 @@
 
     <main>
       <h1>항공권 예약내역 조회 / 취소 📃</h1>
-
-      <form class="search-form">
+      <form class="search-form" method="get" action="{{ url_for('flight_check') }}">
         <div class="form-row">
-            <label>기간 설정</label>
-            <input type="date" name="start_date">
-            <span>~</span>
-            <input type="date" name="end_date">
+          <label>기간 설정</label>
+          <input type="date" name="start_date" value="{{ request.args.get('start_date', '') }}" required>
+          <span>~</span>
+          <input type="date" name="end_date" value="{{ request.args.get('end_date', '') }}" required>
         </div>
         <div class="form-row">
-            <button type="submit">검색</button>
-            <button type="button">필터</button>
+          <label>내역 구분</label>
+          <select name="view_type" onchange="this.form.submit()">
+            <option value="reserve" {% if request.args.get('view_type') == 'reserve' %}selected{% endif %}>예약 내역</option>
+            <option value="cancel" {% if request.args.get('view_type') == 'cancel' %}selected{% endif %}>취소 내역</option>
+          </select>
         </div>
-        </form>
-
+      </form>
 
       <div class="table-wrapper">
-        <!-- 상단 헤더 테이블 -->
         <table class="result-table header-table">
           <thead>
             <tr>
@@ -44,48 +44,53 @@
               <th>도착공항</th>
               <th>출발날짜시간</th>
               <th>도착날짜시간</th>
-              <th>요금</th>
-              <th>취소</th>
+              <th>금액</th>
+              {% if request.args.get('view_type', 'all') != 'cancel' %}
+                <th>취소</th>
+              {% else %}
+                <th>취소일시</th>
+              {% endif %}
             </tr>
           </thead>
         </table>
 
-        <!-- 스크롤 가능한 바디 테이블 -->
         <div class="scroll-body">
           <table class="result-table body-table">
             <tbody>
               {% if reservations %}
                 {% for r in reservations %}
                   <tr>
-                    <td>{{ r[0] }}</td>
-                    <td>{{ r[1] }}</td>
-                    <td>{{ r[2] }}</td>
-                    <td>{{ r[3] }}</td>
-                    <td>{{ r[4] }}</td>
-                    <td>{{ r[5] }}</td>
-                    <td>{{ r[6] }}</td>
-                    <td>
-                      <form action="{{ url_for('flight_check') }}" method="post" onsubmit="return confirm('예약을 취소하시겠습니까?');">
-                        <input type="hidden" name="flight_no" value="{{ r[1] }}">
-                        <input type="hidden" name="departure_datetime" value="{{ r[4] }}">
-                        <button type="submit" class="cancel-btn">취소</button>
-                      </form>
-                    </td>
+                    <td>{{ r[0] }}</td> <!-- airline -->
+                    <td>{{ r[1] }}</td> <!-- flightNo -->
+                    <td>{{ r[2] }}</td> <!-- departureAirport -->
+                    <td>{{ r[3] }}</td> <!-- arrivalAirport -->
+                    <td>{{ r[4] }}</td> <!-- departureDateTime -->
+                    <td>{{ r[5] }}</td> <!-- arrivalDateTime -->
+                    <td>{{ "{:,}".format(r[6]) }}</td> <!-- payment/refund -->
+                    {% if r[8] == '예약' %}
+                      <td>
+                        <form action="{{ url_for('flight_check') }}" method="post" onsubmit="return confirm('예약을 취소하시겠습니까?');">
+                          <input type="hidden" name="flight_no" value="{{ r[1] }}">
+                          <input type="hidden" name="departure_datetime" value="{{ r[4] }}">
+                          <button type="submit" class="cancel-btn">취소</button>
+                        </form>
+                      </td>
+                    {% else %}
+                      <td>{{ r[7] }}</td> <!-- 취소일시 -->
+                    {% endif %}
                   </tr>
                 {% endfor %}
               {% else %}
                 <tr>
-                  <td colspan="8">예약 내역이 없습니다.</td>
+                  <td colspan="8">조회된 내역이 없습니다.</td>
                 </tr>
               {% endif %}
             </tbody>
           </table>
         </div>
       </div>
-
     </main>
   </div>
   <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-
 </body>
 </html>
