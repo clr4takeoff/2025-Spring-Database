@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>항공권 검색/예약</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='flight_search.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/flight_search.css') }}">
 </head>
 <body>
   <div class="container">
@@ -12,7 +12,7 @@
         <div class="user-info">
             <span><strong>{{ session.name }}</strong>님, 환영합니다.</span>
             <a href="{{ url_for('flight_check') }}" class="nav-btn">예약 내역</a>
-            <button class="logout-btn">LOGOUT</button>
+            <a href="{{ url_for('logout') }}" class="logout-btn" onclick="return confirmLogout()">LOGOUT</a>
         </div>
     </header>
 
@@ -76,6 +76,8 @@
         </div>
 
       </main>
-  </div>
+    </div>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
 </body>
 </html>

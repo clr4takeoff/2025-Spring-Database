@@ -73,3 +73,21 @@ main h1 {
   background-color: #ddd;
   border-radius: 8px;
 }
+
+.logout-btn {
+  background: #ddd;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+  color: black;
+  display: inline-block;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.logout-btn:hover {
+  background-color: #bbb;
+  color: white;
+}

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>예약/취소 통계 조회</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 </head>
 <body>
   <div class="container">
@@ -11,7 +11,7 @@
       <h2>CNU Airline Reservation Web</h2>
       <div class="user-info">
         <span><strong>{{ session.name }}</strong>님, 환영합니다.</span>
-        <button class="logout-btn">LOGOUT</button>
+        <a href="{{ url_for('logout') }}" class="logout-btn" onclick="return confirmLogout()">LOGOUT</a>
       </div>
     </header>
 
@@ -32,5 +32,7 @@
       </section>
     </main>
   </div>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
 </body>
 </html>

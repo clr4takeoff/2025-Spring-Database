@@ -63,6 +63,11 @@ def flight_search():
 def flight_check():
     return render_template('flight_check.html')
 
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)
