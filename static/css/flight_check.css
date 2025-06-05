@@ -85,31 +85,50 @@ main h1 {
   background-color: #bbb;
 }
 
-.result-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-.result-table th,
-.result-table td {
-  border: 1px solid #aaa;
+/* 예약 테이블 - 헤더 스타일 */
+.header-table th {
+  background-color: #f9f9f9;
+  font-weight: bold;
+  border: 1px solid #ddd;
   padding: 10px;
   text-align: center;
 }
 
+/* 예약 테이블 - 바디 스타일 */
+.body-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+  background-color: #fff;
+  word-wrap: break-word;
+}
+
+/* 스크롤 영역 */
+.scroll-body {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* 공통 테이블 */
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+/* 취소 버튼 스타일 */
 .cancel-btn {
   padding: 6px 12px;
+  background-color: #ccc;
   border: none;
-  background-color: #aaa;
-  color: #fff;
   border-radius: 10px;
   font-weight: bold;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .cancel-btn:hover {
-  background-color: #888;
+  background-color: #bbb;
 }
 
 .logout-btn {
