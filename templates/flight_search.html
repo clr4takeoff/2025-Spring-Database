@@ -19,23 +19,30 @@
     <main>
       <h1>항공권 검색/예약 ✈️</h1>
 
-      <form class="search-form">
+      <form class="search-form" method="GET" action="{{ url_for('flight_search') }}">
         <div class="form-row">
-            <input type="text" placeholder="출발 공항 입력 (예: JFK)">
-            <input type="text" placeholder="도착 공항 입력 (예: ICN)">
+            <input type="text" name="departure" placeholder="출발 공항 입력 (예: JFK)">
+            <input type="text" name="arrival" placeholder="도착 공항 입력 (예: ICN)">
         </div>
-
         <div class="form-row single-line">
-            <input type="text" placeholder="출발 날짜 입력 (예: 2025.06.14.)">
-            <select>
-            <option disabled selected>드롭박스 (이코노미, 비즈니스)</option>
-            <option>이코노미</option>
-            <option>비즈니스</option>
+            <input type="text" name="date" placeholder="출발 날짜 입력">
+            
+            <select name="seat_class">
+              <option value="">-- 좌석 선택 --</option>
+              <option value="Economy">이코노미</option>
+              <option value="Business">비즈니스</option>
             </select>
+
+            <select name="sort_by">
+              <option value="">-- 정렬 기준 --</option>
+              <option value="price">요금 낮은 순</option>
+              <option value="departure">출발 시간 순</option>
+            </select>
+
             <button type="submit">검색</button>
-            <button type="button">필터</button>
         </div>
-        </form>
+      </form>
+
 
         <div class="table-wrapper">
           <table class="result-table header-table">

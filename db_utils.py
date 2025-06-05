@@ -1,7 +1,5 @@
-# db_utils.py
 import oracledb
 
-# Oracle 연결 함수
 def get_connection():
     return oracledb.connect(
         user="TP",
@@ -9,27 +7,50 @@ def get_connection():
         dsn="localhost:1521/XE"
     )
 
-# 로그인 검증
 def verify_user(cursor, email, password):
-    clean_email = email.strip()
-    clean_password = password.strip()
-    print(f"[DEBUG] Trying: '{clean_email}' / '{clean_password}'")
-
     query = """
         SELECT cno, name FROM CUSTOMER 
         WHERE email = :email AND passwd = :passwd
     """
-    cursor.execute(query, {'email': clean_email, 'passwd': clean_password})
-    user = cursor.fetchone()
-    print("[DEBUG] Query result:", user)
-    return user
+    cursor.execute(query, {'email': email, 'passwd': password})
+    return cursor.fetchone()
 
+def get_flights(cursor, filters):
+    query = """
+        SELECT 
+            a.airline, a.flightNo, a.departureAirport, a.arrivalAirport,
+            TO_CHAR(a.departureDateTime, 'YYYY-MM-DD HH24:MI'),
+            TO_CHAR(a.arrivalDateTime, 'YYYY-MM-DD HH24:MI'),
+            s.price, s.no_of_seats
+        FROM AIRPLANE a
+        JOIN SEATS s ON a.flightNo = s.flightNo AND a.departureDateTime = s.departureDateTime
+        WHERE 1=1
+    """
+    params = {}
 
-# 추후 추가 가능: 항공편 조회, 예약, 취소 등
+    if filters.get("departure"):
+        query += " AND a.departureAirport = :departure"
+        params["departure"] = filters["departure"]
 
-def print_all_customers(cursor):
-    cursor.execute("SELECT email, passwd FROM CUSTOMER")
-    rows = cursor.fetchall()
-    print("[DEBUG] CUSTOMER 테이블 내용:")
-    for email, passwd in rows:
-        print(f"  - {email} / {passwd}")
+    if filters.get("arrival"):
+        query += " AND a.arrivalAirport = :arrival"
+        params["arrival"] = filters["arrival"]
+
+    if filters.get("date"):
+        query += " AND TO_CHAR(a.departureDateTime, 'YYYY.MM.DD.') = :date"
+        params["date"] = filters["date"]
+
+    if filters.get("seat_class"):
+        query += " AND s.seatClass = :seat_class"
+        params["seat_class"] = filters["seat_class"]
+
+    sort_by = filters.get("sort_by")
+    if sort_by == 'price':
+        query += " ORDER BY s.price"
+    elif sort_by == 'departure':
+        query += " ORDER BY a.departureDateTime"
+    else:
+        query += " ORDER BY a.departureDateTime"
+
+    cursor.execute(query, params)
+    return cursor.fetchall()
