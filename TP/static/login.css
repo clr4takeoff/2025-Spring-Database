@@ -1,0 +1,73 @@
+/* 전체 페이지 중앙 정렬 */
+body {
+  background-color: #fff;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 로그인 박스 */
+.login-wrapper {
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+}
+
+.login-wrapper h1 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 40px;
+}
+
+/* 로그인 폼: 입력칸 + 버튼 가로 정렬 */
+.login-form {
+  display: flex;
+  align-items: stretch;  /* 버튼 높이 자동 맞춤 */
+  justify-content: center;
+  gap: 20px;
+}
+
+/* 입력 필드만 세로 정렬 */
+.form-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  flex: 1;
+}
+
+.form-inputs input {
+  padding: 14px;
+  border: 1px solid #333;
+  border-radius: 14px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 로그인 버튼 - 정사각형 (높이 = 입력칸 2개 합) */
+.login-form button {
+  width: 80px;
+  background-color: #ddd;
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* 버튼 hover */
+.login-form button:hover {
+  background-color: #bbb;
+}
+
+/* 하단 박스 (회색 공간) */
+.login-footer {
+  margin-top: 40px;
+  height: 100px;
+  background-color: #ddd;
+  border-radius: 4px;
+}

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CNU Airline Reservation Web - Login</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+</head>
+<body>
+  <div class="login-wrapper">
+    <h1>CNU Airline Reservation Web</h1>
+    <form action="/login" method="POST" class="login-form">
+      <div class="form-inputs">
+        <input type="email" name="email" placeholder="id (email)" required>
+        <input type="password" name="password" placeholder="password" required>
+      </div>
+      <button type="submit">LOGIN</button>
+    </form>
+
+    {% if error %}
+    <div class="login-error">{{ error }}</div>
+    {% endif %}
+    
+  </div>
+</body>
+</html>
