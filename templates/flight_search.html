@@ -37,37 +37,45 @@
         </div>
         </form>
 
+        <div class="table-wrapper">
+          <table class="result-table header-table">
+            <thead>
+              <tr>
+                <th>항공사명</th>
+                <th>운항편명</th>
+                <th>출발공항</th>
+                <th>도착공항</th>
+                <th>출발날짜시간</th>
+                <th>도착날짜시간</th>
+                <th>요금($)</th>
+                <th>남은 좌석 수</th>
+                <th>예약</th>
+              </tr>
+            </thead>
+          </table>
 
-      <table class="result-table">
-        <thead>
-          <tr>
-            <th>항공사명</th>
-            <th>운항편명</th>
-            <th>출발공항</th>
-            <th>도착공항</th>
-            <th>출발날짜시간</th>
-            <th>도착날짜시간</th>
-            <th>요금</th>
-            <th>남은 좌석 수</th>
-            <th>예약</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td colspan="8">내용~~~~</td>
-            <td><button class="reserve-btn">예약</button></td>
-          </tr>
-          <tr>
-            <td colspan="8">내용~~~~</td>
-            <td><button class="reserve-btn">예약</button></td>
-          </tr>
-          <tr>
-            <td colspan="8">내용~~~~</td>
-            <td><button class="reserve-btn">예약</button></td>
-          </tr>
-        </tbody>
-      </table>
-    </main>
+          <div class="scroll-body">
+            <table class="result-table body-table">
+              <tbody>
+                {% for flight in flights %}
+                <tr>
+                  <td>{{ flight[0] }}</td>
+                  <td>{{ flight[1] }}</td>
+                  <td>{{ flight[2] }}</td>
+                  <td>{{ flight[3] }}</td>
+                  <td>{{ flight[4] }}</td>
+                  <td>{{ flight[5] }}</td>
+                  <td>{{ flight[6] }}</td>
+                  <td>{{ flight[7] }}</td>
+                  <td><button class="reserve-btn">예약</button></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
   </div>
 </body>
 </html>

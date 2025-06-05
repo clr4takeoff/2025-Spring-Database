@@ -10,7 +10,7 @@
     <header>
       <h2>CNU Airline Reservation Web</h2>
       <div class="user-info">
-        <span><strong>user</strong>님, 환영합니다.</span>
+        <span><strong>{{ session.name }}</strong>님, 환영합니다.</span>
         <a href="{{ url_for('flight_search') }}" class="nav-btn">항공권 검색</a>
         <button class="logout-btn">LOGOUT</button>
       </div>

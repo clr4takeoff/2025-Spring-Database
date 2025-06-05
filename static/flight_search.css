@@ -101,18 +101,53 @@ main h1 {
   cursor: pointer;
 }
 
-.result-table {
-  width: 100%;
-  border-collapse: collapse;
+.table-wrapper {
+  border: 1px solid #ccc;
   margin-top: 20px;
 }
 
-.result-table th,
-.result-table td {
-  border: 1px solid #aaa;
+/* 고정 헤더 테이블 */
+.header-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.header-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+  border: 1px solid #ddd;
   padding: 10px;
   text-align: center;
 }
+
+/* 스크롤 영역 */
+.scroll-body {
+  max-height: 440px;
+  overflow-y: auto;
+}
+
+.body-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.body-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+  word-wrap: break-word;
+}
+
+
+/* 예: 예약 버튼 스타일 */
+.reserve-btn {
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+
 
 .reserve-btn {
   padding: 6px 12px;

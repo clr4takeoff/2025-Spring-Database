@@ -36,7 +36,27 @@ def login():
 def flight_search():
     if 'cno' not in session:
         return redirect(url_for('login'))
-    return render_template('flight_search.html')
+
+    cursor = conn.cursor()
+    query = """
+            SELECT 
+                a.airline, 
+                a.flightNo, 
+                a.departureAirport, 
+                a.arrivalAirport,
+                TO_CHAR(a.departureDateTime, 'YYYY-MM-DD HH24:MI') AS dep_time,
+                TO_CHAR(a.arrivalDateTime, 'YYYY-MM-DD HH24:MI') AS arr_time,
+                s.price, 
+                s.no_of_seats
+            FROM AIRPLANE a
+            JOIN SEATS s 
+            ON a.flightNo = s.flightNo AND a.departureDateTime = s.departureDateTime
+        """
+
+    cursor.execute(query)
+    flights = cursor.fetchall()
+
+    return render_template('flight_search.html', flights=flights, name=session['name'])
 
 
 @app.route('/flight_check')
