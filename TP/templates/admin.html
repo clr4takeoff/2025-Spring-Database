@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>예약/취소 통계 조회</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h2>CNU Airline Reservation Web</h2>
+      <div class="user-info">
+        <span><strong>관리자</strong>님, 환영합니다.</span>
+        <button class="logout-btn">LOGOUT</button>
+      </div>
+    </header>
+
+    <main>
+      <h1>예약/취소 통계 조회 👀</h1>
+
+      <section class="filters">
+        <label>필터 설정</label>
+        <div class="filter-buttons">
+          <button>취소율 조회</button>
+          <button>고객별 결제순위</button>
+        </div>
+      </section>
+
+      <section class="results">
+        <h3>결과</h3>
+        <div class="result-box"></div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
