@@ -26,7 +26,7 @@ header {
   gap: 10px;
 }
 
-.logout-btn, .nav-btn {
+.logout-btn {
   background: #ddd;
   border: none;
   padding: 8px 16px;
@@ -37,9 +37,23 @@ header {
   color: black;
 }
 
-.logout-btn:hover,
-.nav-btn:hover {
+.nav-btn {
+  background: #badbff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+  color: black;
+}
+
+.logout-btn:hover {
   background-color: #bbb;
+}
+
+.nav-btn:hover {
+  background-color: #a3c1dd;
 }
 
 main h1 {

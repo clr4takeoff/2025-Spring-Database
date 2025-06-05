@@ -159,7 +159,7 @@ main h1 {
 }
 
 .nav-btn {
-  background-color: #ccc;
+  background-color: #c1baff;
   color: #000;
   padding: 8px 16px;
   margin-left: 10px;
@@ -170,7 +170,7 @@ main h1 {
 }
 
 .nav-btn:hover {
-  background-color: #bbb;
+  background-color: #bbabd8;
 }
 
 
