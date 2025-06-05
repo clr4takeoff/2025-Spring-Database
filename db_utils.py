@@ -54,3 +54,23 @@ def get_flights(cursor, filters):
 
     cursor.execute(query, params)
     return cursor.fetchall()
+
+
+def get_reservations(cursor, cno):
+    query = """
+        SELECT 
+            a.airline, a.flightNo, a.departureAirport, a.arrivalAirport,
+            TO_CHAR(a.departureDateTime, 'YYYY-MM-DD HH24:MI'),
+            TO_CHAR(a.arrivalDateTime, 'YYYY-MM-DD HH24:MI'),
+            r.payment
+        FROM RESERVE r
+        JOIN SEATS s ON r.flightNo = s.flightNo 
+                    AND r.departureDateTime = s.departureDateTime 
+                    AND r.seatClass = s.seatClass
+        JOIN AIRPLANE a ON r.flightNo = a.flightNo 
+                       AND r.departureDateTime = a.departureDateTime
+        WHERE r.cno = :cno
+        ORDER BY a.departureDateTime
+    """
+    cursor.execute(query, {'cno': cno})
+    return cursor.fetchall()

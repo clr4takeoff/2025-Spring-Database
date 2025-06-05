@@ -1,5 +1,5 @@
 from flask import Flask, request, redirect, render_template, url_for, session
-from db_utils import get_connection, verify_user, get_flights
+from db_utils import get_connection, verify_user, get_flights, get_reservations
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -45,7 +45,11 @@ def flight_search():
 
 @app.route('/flight_check')
 def flight_check():
-    return render_template('flight_check.html')
+    if 'cno' not in session:
+        return redirect(url_for('login'))
+
+    reservations = get_reservations(cursor, session['cno'])
+    return render_template('flight_check.html', reservations=reservations, name=session['name'])
 
 @app.route('/logout')
 def logout():
