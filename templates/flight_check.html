@@ -45,6 +45,8 @@
               <th>출발날짜시간</th>
               <th>도착날짜시간</th>
               <th>금액</th>
+              <th>예약일시</th>
+              
               {% if request.args.get('view_type', 'all') != 'cancel' %}
                 <th>취소</th>
               {% else %}
@@ -57,35 +59,42 @@
         <div class="scroll-body">
           <table class="result-table body-table">
             <tbody>
-              {% if reservations %}
-                {% for r in reservations %}
-                  <tr>
-                    <td>{{ r[0] }}</td> <!-- airline -->
-                    <td>{{ r[1] }}</td> <!-- flightNo -->
-                    <td>{{ r[2] }}</td> <!-- departureAirport -->
-                    <td>{{ r[3] }}</td> <!-- arrivalAirport -->
-                    <td>{{ r[4] }}</td> <!-- departureDateTime -->
-                    <td>{{ r[5] }}</td> <!-- arrivalDateTime -->
-                    <td>{{ "{:,}".format(r[6]) }}</td> <!-- payment/refund -->
-                    {% if r[8] == '예약' %}
-                      <td>
-                        <form action="{{ url_for('flight_check') }}" method="post" onsubmit="return confirm('예약을 취소하시겠습니까?');">
-                          <input type="hidden" name="flight_no" value="{{ r[1] }}">
-                          <input type="hidden" name="departure_datetime" value="{{ r[4] }}">
-                          <button type="submit" class="cancel-btn">취소</button>
-                        </form>
-                      </td>
-                    {% else %}
-                      <td>{{ r[7] }}</td> <!-- 취소일시 -->
-                    {% endif %}
-                  </tr>
-                {% endfor %}
+        {% if reservations %}
+          {% for r in reservations %}
+            <tr>
+              <td>{{ r[0] }}</td>
+              <td>{{ r[1] }}</td>
+              <td>{{ r[2] }}</td>
+              <td>{{ r[3] }}</td>
+              <td>{{ r[4] }}</td>
+              <td>{{ r[5] }}</td>
+              <td>{{ "{:,}".format(r[6]) }}</td>
+              <td>{{ r[7] }}</td> <!-- 🔹 예약일시 추가 -->
+
+              {% if r[8] == '예약' %}
+                <td>
+                  <form action="{{ url_for('flight_check') }}" method="post" onsubmit="return confirm('예약을 취소하시겠습니까?');">
+                    <input type="hidden" name="flight_no" value="{{ r[1] }}">
+                    <input type="hidden" name="departure_datetime" value="{{ r[4] }}">
+                    <button type="submit" class="cancel-btn">취소</button>
+                  </form>
+                </td>
               {% else %}
-                <tr>
-                  <td colspan="8">조회된 내역이 없습니다.</td>
-                </tr>
+                <td>{{ r[9] }}</td> <!-- 🔹 취소일시 -->
               {% endif %}
-            </tbody>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="8">조회된 내역이 없습니다.</td> <!-- 🔹 colspan을 8로 수정 -->
+            {% if request.args.get('view_type', 'all') != 'cancel' %}
+              <td></td> <!-- 취소 버튼 열 추가 -->
+            {% endif %}
+      <td colspan="9">조회된 내역이 없습니다.</td> <!-- 🔹 colspan도 9로 수정 -->
+    </tr>
+  {% endif %}
+</tbody>
+
           </table>
         </div>
       </div>

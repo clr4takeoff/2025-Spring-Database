@@ -80,11 +80,13 @@ def get_user_reservations(cno, start_date, end_date, view_type):
     conn = get_connection()
     cur = conn.cursor()
 
-    base_conditions = "cno = :cno"
+    base_conditions = "r.cno = :cno"
+    cancel_conditions = "c.cno = :cno"
     params = {'cno': cno}
 
     if start_date and end_date:
         base_conditions += " AND r.departureDateTime BETWEEN :start_date AND :end_date"
+        cancel_conditions += " AND c.departureDateTime BETWEEN :start_date AND :end_date"
         params['start_date'] = start_date
         params['end_date'] = end_date
 
@@ -96,7 +98,10 @@ def get_user_reservations(cno, start_date, end_date, view_type):
                 a.airline, r.flightNo, a.departureAirport, a.arrivalAirport,
                 TO_CHAR(a.departureDateTime, 'YYYY-MM-DD HH24:MI'),
                 TO_CHAR(a.arrivalDateTime, 'YYYY-MM-DD HH24:MI'),
-                r.payment, NULL AS cancelDateTime, '예약' AS status
+                r.payment,
+                TO_CHAR(r.reserveDateTime, 'YYYY-MM-DD HH24:MI') AS reserveDate,
+                '예약' AS status,
+                NULL AS cancelDate
             FROM RESERVE r
             JOIN AIRPLANE a ON r.flightNo = a.flightNo AND r.departureDateTime = a.departureDateTime
             WHERE {base_conditions}
@@ -108,16 +113,19 @@ def get_user_reservations(cno, start_date, end_date, view_type):
                 a.airline, c.flightNo, a.departureAirport, a.arrivalAirport,
                 TO_CHAR(a.departureDateTime, 'YYYY-MM-DD HH24:MI'),
                 TO_CHAR(a.arrivalDateTime, 'YYYY-MM-DD HH24:MI'),
-                c.refund, TO_CHAR(c.cancelDateTime, 'YYYY-MM-DD HH24:MI'), '취소' AS status
+                c.refund,
+                TO_CHAR(c.cancelDateTime, 'YYYY-MM-DD HH24:MI') AS reserveDate,
+                '취소' AS status,
+                TO_CHAR(c.cancelDateTime, 'YYYY-MM-DD HH24:MI') AS cancelDate
             FROM CANCEL c
             JOIN AIRPLANE a ON c.flightNo = a.flightNo AND c.departureDateTime = a.departureDateTime
-            WHERE {base_conditions}
+            WHERE {cancel_conditions}
         """)
 
     if not queries:
         return []
 
-    full_query = " UNION ALL ".join(queries) + " ORDER BY 5"  # 출발일 기준 정렬
+    full_query = " UNION ALL ".join(queries) + " ORDER BY 5"  # departureDateTime 기준 정렬
     cur.execute(full_query, params)
     results = cur.fetchall()
 
