@@ -99,13 +99,28 @@ main h1 {
   background-color: #bbb;
 }
 
-/* 예약 테이블 - 헤더 스타일 */
+/* 고정 헤더 테이블 */
+.header-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 15px;
+}
+
 .header-table th {
-  background-color: #f9f9f9;
+  background-color: #f2f2f2;
   font-weight: bold;
   border: 1px solid #ddd;
   padding: 10px;
   text-align: center;
+}
+
+.header-table th {
+  font-size: 12px;
+}
+
+.body-table td {
+  font-size: 12px;
 }
 
 /* 예약 테이블 - 바디 스타일 */

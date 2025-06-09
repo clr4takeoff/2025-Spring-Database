@@ -88,7 +88,7 @@ def get_reservations(cursor, cno):
             a.airline, a.flightNo, a.departureAirport, a.arrivalAirport,
             TO_CHAR(a.departureDateTime, 'YYYY-MM-DD HH24:MI'),
             TO_CHAR(a.arrivalDateTime, 'YYYY-MM-DD HH24:MI'),
-            r.payment
+            r.seatClass, r.payment
         FROM RESERVE r
         JOIN SEATS s ON r.flightNo = s.flightNo 
                     AND r.departureDateTime = s.departureDateTime 
@@ -129,7 +129,7 @@ def get_user_reservations(cno, start_date, end_date, view_type):
                 a.airline, r.flightNo, a.departureAirport, a.arrivalAirport,
                 TO_CHAR(a.departureDateTime, 'YYYY-MM-DD HH24:MI'),
                 TO_CHAR(a.arrivalDateTime, 'YYYY-MM-DD HH24:MI'),
-                r.payment,
+                r.seatClass, r.payment,
                 TO_CHAR(r.reserveDateTime, 'YYYY-MM-DD HH24:MI'),
                 '예약',
                 NULL
@@ -148,7 +148,7 @@ def get_user_reservations(cno, start_date, end_date, view_type):
                 a.airline, c.flightNo, a.departureAirport, a.arrivalAirport,
                 TO_CHAR(a.departureDateTime, 'YYYY-MM-DD HH24:MI'),
                 TO_CHAR(a.arrivalDateTime, 'YYYY-MM-DD HH24:MI'),
-                c.refund,
+                c.seatClass, c.refund,
                 TO_CHAR(c.cancelDateTime, 'YYYY-MM-DD HH24:MI'),
                 '취소',
                 TO_CHAR(c.cancelDateTime, 'YYYY-MM-DD HH24:MI')
@@ -291,7 +291,7 @@ def cancel_reservation(flight_no, departure_datetime_str, cno):
         conn.commit()
 
         # 사용자에게 보여줄 메시지
-        msg = f"예약이 취소되었습니다.\n총 결제금액: {payment:,}원\n취소 수수료: {fee:,}달러\n환불 금액: {refund:,}달러"
+        msg = f"예약이 취소되었습니다.\n총 결제금액: {payment:,}원\n취소 수수료: {fee:,}원\n환불 금액: {refund:,}원"
         return True, msg
 
     except Exception as e:
