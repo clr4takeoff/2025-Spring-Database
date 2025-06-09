@@ -111,6 +111,7 @@ main h1 {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
+  font-size: 15px;
 }
 
 .header-table th {
@@ -119,6 +120,14 @@ main h1 {
   border: 1px solid #ddd;
   padding: 10px;
   text-align: center;
+}
+
+.header-table th {
+  font-size: 12px;
+}
+
+.body-table td {
+  font-size: 12px;
 }
 
 /* 스크롤 영역 */

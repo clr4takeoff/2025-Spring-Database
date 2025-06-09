@@ -48,12 +48,14 @@
           <table class="result-table header-table">
             <thead>
               <tr>
+                <th>번호</th>
                 <th>항공사명</th>
                 <th>운항편명</th>
                 <th>출발공항</th>
                 <th>도착공항</th>
                 <th>출발날짜시간</th>
                 <th>도착날짜시간</th>
+                <th>좌석 등급</th>
                 <th>요금(원)</th>
                 <th>남은 좌석 수</th>
                 <th>예약</th>
@@ -66,14 +68,16 @@
               <tbody>
                 {% for flight in flights %}
                 <tr>
-                  <td>{{ flight[0] }}</td>
-                  <td>{{ flight[1] }}</td>
-                  <td>{{ flight[2] }}</td>
-                  <td>{{ flight[3] }}</td>
-                  <td>{{ flight[4] }}</td>
-                  <td>{{ flight[5] }}</td>
-                  <td>{{ flight[6] }}</td>
-                  <td>{{ flight[7] }}</td>
+                  <td>{{ loop.index }}</td> <!-- 순번 -->
+                  <td>{{ flight[0] }}</td>  <!-- airline -->
+                  <td>{{ flight[1] }}</td>  <!-- flightNo -->
+                  <td>{{ flight[2] }}</td>  <!-- departureAirport -->
+                  <td>{{ flight[3] }}</td>  <!-- arrivalAirport -->
+                  <td>{{ flight[4] }}</td>  <!-- departureDateTime -->
+                  <td>{{ flight[5] }}</td>  <!-- arrivalDateTime -->
+                  <td>{{ flight[8] }}</td>  <!-- seatClass -->
+                  <td>{{ flight[6] }}</td>  <!-- price -->
+                  <td>{{ flight[7] }}</td>  <!-- no_of_seats -->
                   <td>
                     <form method="POST" action="{{ url_for('make_reservation_route') }}">
                       <input type="hidden" name="flight_no" value="{{ flight[1] }}">
