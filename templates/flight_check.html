@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/flight_check.css') }}">
 </head>
 <body>
+  <input type="hidden" id="popup-message" value="{{ popup_message or '' }}">
   <div class="container">
     <header>
       <h2>CNU Airline Reservation Web</h2>
@@ -97,6 +98,14 @@
       </div>
     </main>
   </div>
-  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const msg = urlParams.get("msg");
+
+  if (msg) {
+    alert(decodeURIComponent(msg));
+  }
+</script>
 </body>
 </html>

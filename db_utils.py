@@ -209,3 +209,83 @@ def get_payment_rank():
     cur.close()
     conn.close()
     return result
+
+
+def cancel_reservation(flight_no, departure_datetime_str, cno):
+    from datetime import datetime
+    conn = get_connection()
+    cur = conn.cursor()
+
+    try:
+        departure_datetime = datetime.strptime(departure_datetime_str, "%Y-%m-%d %H:%M")
+        now = datetime.now()
+
+        if departure_datetime < now:
+            return False, "이미 출발한 항공편은 취소할 수 없습니다."
+
+        cur.execute("""
+            SELECT seatClass, payment
+            FROM RESERVE
+            WHERE flightNo = :flight_no AND departureDateTime = TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI') AND cno = :cno
+        """, {
+            'flight_no': flight_no,
+            'departure_datetime': departure_datetime_str,
+            'cno': cno
+        })
+        row = cur.fetchone()
+
+        if not row:
+            return False, "예약 정보를 찾을 수 없습니다."
+
+        seat_class, payment = row
+
+        # 수수료 계산
+        days_diff = (departure_datetime.date() - now.date()).days
+        if days_diff >= 15:
+            fee = 150000
+        elif 4 <= days_diff <= 14:
+            fee = 180000
+        elif 1 <= days_diff <= 3:
+            fee = 250000
+        else:  # same-day
+            fee = payment  # 전액 수수료
+        refund = max(0, payment - fee)
+
+        now_str = now.strftime("%Y-%m-%d %H:%M:%S")
+
+        # INSERT into CANCEL
+        cur.execute("""
+            INSERT INTO CANCEL (flightNo, departureDateTime, seatClass, refund, cancelDateTime, cno)
+            VALUES (:flight_no, TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI'), :seat_class, :refund, TO_TIMESTAMP(:cancel_time, 'YYYY-MM-DD HH24:MI:SS'), :cno)
+        """, {
+            'flight_no': flight_no,
+            'departure_datetime': departure_datetime_str,
+            'seat_class': seat_class,
+            'refund': refund,
+            'cancel_time': now_str,
+            'cno': cno
+        })
+
+        # DELETE from RESERVE
+        cur.execute("""
+            DELETE FROM RESERVE
+            WHERE flightNo = :flight_no AND departureDateTime = TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI') AND seatClass = :seat_class AND cno = :cno
+        """, {
+            'flight_no': flight_no,
+            'departure_datetime': departure_datetime_str,
+            'seat_class': seat_class,
+            'cno': cno
+        })
+
+        conn.commit()
+
+        # 사용자에게 보여줄 메시지
+        msg = f"예약이 취소되었습니다.\n총 결제금액: {payment:,}원\n취소 수수료: {fee:,}원\n환불 금액: {refund:,}원"
+        return True, msg
+
+    except Exception as e:
+        conn.rollback()
+        return False, f"오류 발생: {str(e)}"
+    finally:
+        cur.close()
+        conn.close()
