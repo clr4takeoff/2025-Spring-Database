@@ -16,9 +16,15 @@ def login():
     if request.method == 'GET':
         return render_template('login.html')
 
-    email = request.form['email']
-    password = request.form['password']
-    user = verify_user(cursor, email, password)
+    email = request.form['email'].strip()
+    password = request.form['password'].strip()
+    user = verify_user(email, password)
+
+    if not user:
+        return render_template('login.html', error="이메일 또는 비밀번호가 잘못되었습니다.")
+
+    session['cno'] = user[0]
+    session['name'] = user[1]
 
     if is_admin(user[0]):
         return redirect(url_for('admin_page'))

@@ -1,4 +1,4 @@
-import oracledb
+import oracledb, datetime
 
 def get_connection():
     return oracledb.connect(
@@ -8,13 +8,26 @@ def get_connection():
     )
 
 
-def verify_user(cursor, email, password):
+def verify_user(email, password):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    print("[DEBUG] 입력된 email:", email)
+    print("[DEBUG] 입력된 password:", password)
+
     query = """
         SELECT cno, name FROM CUSTOMER 
         WHERE email = :email AND passwd = :passwd
     """
-    cursor.execute(query, {'email': email, 'passwd': password})
-    return cursor.fetchone()
+    cur.execute(query, {'email': email, 'passwd': password})
+    result = cur.fetchone()
+
+    print("[DEBUG] 쿼리 결과:", result)
+
+    cur.close()
+    conn.close()
+    return result
+
 
 def get_flights(cursor, filters):
     query = """
@@ -85,11 +98,21 @@ def get_user_reservations(cno, start_date, end_date, view_type):
     cancel_conditions = "c.cno = :cno"
     params = {'cno': cno}
 
+    # ✅ 날짜 파싱 및 변환 처리
     if start_date and end_date:
-        base_conditions += " AND r.departureDateTime BETWEEN :start_date AND :end_date"
-        cancel_conditions += " AND c.departureDateTime BETWEEN :start_date AND :end_date"
-        params['start_date'] = start_date
-        params['end_date'] = end_date
+        try:
+            start_date_obj = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+            end_date_obj = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+
+            params['start_date'] = start_date_obj
+            params['end_date'] = end_date_obj
+
+            base_conditions += " AND r.departureDateTime BETWEEN :start_date AND :end_date"
+            cancel_conditions += " AND c.departureDateTime BETWEEN :start_date AND :end_date"
+        except ValueError:
+            print("[DEBUG] 날짜 파싱 오류:", start_date, end_date)
+            # 날짜 파싱 실패 시 빈 결과 반환
+            return []
 
     queries = []
 
@@ -126,16 +149,17 @@ def get_user_reservations(cno, start_date, end_date, view_type):
     if not queries:
         return []
 
-    full_query = " UNION ALL ".join(queries) + " ORDER BY 5"  # departureDateTime 기준 정렬
+    full_query = " UNION ALL ".join(queries) + " ORDER BY 5"
+
     cur.execute(full_query, params)
     results = cur.fetchall()
 
     cur.close()
     conn.close()
     return results
-
 def is_admin(cno):
     return cno.startswith('C0')
+
 
 def get_cancel_ratio():
     conn = get_connection()

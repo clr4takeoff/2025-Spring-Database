@@ -21,16 +21,17 @@
       <form class="search-form" method="get" action="{{ url_for('flight_check') }}">
         <div class="form-row">
           <label>기간 설정</label>
-          <input type="date" name="start_date" value="{{ request.args.get('start_date', '') }}" required>
+          <input type="date" name="start_date" value="{{ request.args.get('start_date', '') }}">
           <span>~</span>
-          <input type="date" name="end_date" value="{{ request.args.get('end_date', '') }}" required>
+          <input type="date" name="end_date" value="{{ request.args.get('end_date', '') }}">
         </div>
         <div class="form-row">
           <label>내역 구분</label>
-          <select name="view_type" onchange="this.form.submit()">
+          <select name="view_type">
             <option value="reserve" {% if request.args.get('view_type') == 'reserve' %}selected{% endif %}>예약 내역</option>
             <option value="cancel" {% if request.args.get('view_type') == 'cancel' %}selected{% endif %}>취소 내역</option>
           </select>
+          <button type="submit" class="search-btn">검색</button>
         </div>
       </form>
 
@@ -69,7 +70,7 @@
               <td>{{ r[4] }}</td>
               <td>{{ r[5] }}</td>
               <td>{{ "{:,}".format(r[6]) }}</td>
-              <td>{{ r[7] }}</td> <!-- 🔹 예약일시 추가 -->
+              <td>{{ r[7] }}</td>
 
               {% if r[8] == '예약' %}
                 <td>
@@ -80,17 +81,13 @@
                   </form>
                 </td>
               {% else %}
-                <td>{{ r[9] }}</td> <!-- 🔹 취소일시 -->
+                <td>{{ r[9] }}</td>
               {% endif %}
             </tr>
           {% endfor %}
         {% else %}
           <tr>
-            <td colspan="8">조회된 내역이 없습니다.</td> <!-- 🔹 colspan을 8로 수정 -->
-            {% if request.args.get('view_type', 'all') != 'cancel' %}
-              <td></td> <!-- 취소 버튼 열 추가 -->
-            {% endif %}
-      <td colspan="9">조회된 내역이 없습니다.</td> <!-- 🔹 colspan도 9로 수정 -->
+      <td colspan="9">조회된 내역이 없습니다.</td>
     </tr>
   {% endif %}
 </tbody>
