@@ -1,4 +1,5 @@
-import oracledb, datetime
+import oracledb
+from datetime import datetime,  timedelta
 
 def get_connection():
     return oracledb.connect(
@@ -89,67 +90,72 @@ def get_reservations(cursor, cno):
     cursor.execute(query, {'cno': cno})
     return cursor.fetchall()
 
-
 def get_user_reservations(cno, start_date, end_date, view_type):
+    from datetime import datetime, timedelta
+
     conn = get_connection()
     cur = conn.cursor()
 
-    base_conditions = "r.cno = :cno"
-    cancel_conditions = "c.cno = :cno"
     params = {'cno': cno}
-
-    # ✅ 날짜 파싱 및 변환 처리
-    if start_date and end_date:
-        try:
-            start_date_obj = datetime.datetime.strptime(start_date, "%Y-%m-%d")
-            end_date_obj = datetime.datetime.strptime(end_date, "%Y-%m-%d")
-
-            params['start_date'] = start_date_obj
-            params['end_date'] = end_date_obj
-
-            base_conditions += " AND r.departureDateTime BETWEEN :start_date AND :end_date"
-            cancel_conditions += " AND c.departureDateTime BETWEEN :start_date AND :end_date"
-        except ValueError:
-            print("[DEBUG] 날짜 파싱 오류:", start_date, end_date)
-            # 날짜 파싱 실패 시 빈 결과 반환
-            return []
-
     queries = []
 
+    # 날짜 파라미터 처리
+    has_date_filter = bool(start_date and end_date)
+    if has_date_filter:
+        try:
+            start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
+            end_date_obj = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1) - timedelta(seconds=1)
+            params['start_date'] = start_date_obj
+            params['end_date'] = end_date_obj
+        except ValueError:
+            print("[DEBUG] 날짜 형식 오류:", start_date, end_date)
+            return []
+
+    # 예약 내역 쿼리
     if view_type in ('all', 'reserve'):
-        queries.append(f"""
+        reserve_query = """
             SELECT 
                 a.airline, r.flightNo, a.departureAirport, a.arrivalAirport,
                 TO_CHAR(a.departureDateTime, 'YYYY-MM-DD HH24:MI'),
                 TO_CHAR(a.arrivalDateTime, 'YYYY-MM-DD HH24:MI'),
                 r.payment,
-                TO_CHAR(r.reserveDateTime, 'YYYY-MM-DD HH24:MI') AS reserveDate,
-                '예약' AS status,
-                NULL AS cancelDate
+                TO_CHAR(r.reserveDateTime, 'YYYY-MM-DD HH24:MI'),
+                '예약',
+                NULL
             FROM RESERVE r
             JOIN AIRPLANE a ON r.flightNo = a.flightNo AND r.departureDateTime = a.departureDateTime
-            WHERE {base_conditions}
-        """)
+            WHERE r.cno = :cno
+        """
+        if has_date_filter:
+            reserve_query += " AND r.reserveDateTime BETWEEN :start_date AND :end_date"
+        queries.append(reserve_query)
 
+    # 취소 내역 쿼리
     if view_type in ('all', 'cancel'):
-        queries.append(f"""
+        cancel_query = """
             SELECT 
                 a.airline, c.flightNo, a.departureAirport, a.arrivalAirport,
                 TO_CHAR(a.departureDateTime, 'YYYY-MM-DD HH24:MI'),
                 TO_CHAR(a.arrivalDateTime, 'YYYY-MM-DD HH24:MI'),
                 c.refund,
-                TO_CHAR(c.cancelDateTime, 'YYYY-MM-DD HH24:MI') AS reserveDate,
-                '취소' AS status,
-                TO_CHAR(c.cancelDateTime, 'YYYY-MM-DD HH24:MI') AS cancelDate
+                TO_CHAR(c.cancelDateTime, 'YYYY-MM-DD HH24:MI'),
+                '취소',
+                TO_CHAR(c.cancelDateTime, 'YYYY-MM-DD HH24:MI')
             FROM CANCEL c
             JOIN AIRPLANE a ON c.flightNo = a.flightNo AND c.departureDateTime = a.departureDateTime
-            WHERE {cancel_conditions}
-        """)
+            WHERE c.cno = :cno
+        """
+        if has_date_filter:
+            cancel_query += " AND c.cancelDateTime BETWEEN :start_date AND :end_date"
+        queries.append(cancel_query)
 
     if not queries:
         return []
 
     full_query = " UNION ALL ".join(queries) + " ORDER BY 5"
+
+    print("[DEBUG] 최종 쿼리:", full_query)
+    print("[DEBUG] 바인딩 파라미터:", params)
 
     cur.execute(full_query, params)
     results = cur.fetchall()
@@ -157,6 +163,9 @@ def get_user_reservations(cno, start_date, end_date, view_type):
     cur.close()
     conn.close()
     return results
+
+
+
 def is_admin(cno):
     return cno.startswith('C0')
 

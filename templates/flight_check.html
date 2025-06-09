@@ -20,7 +20,7 @@
       <h1>항공권 예약내역 조회 / 취소 📃</h1>
       <form class="search-form" method="get" action="{{ url_for('flight_check') }}">
         <div class="form-row">
-          <label>기간 설정</label>
+          <label>기간 설정 (예약/취소일)</label>
           <input type="date" name="start_date" value="{{ request.args.get('start_date', '') }}">
           <span>~</span>
           <input type="date" name="end_date" value="{{ request.args.get('end_date', '') }}">
