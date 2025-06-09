@@ -74,7 +74,14 @@
                   <td>{{ flight[5] }}</td>
                   <td>{{ flight[6] }}</td>
                   <td>{{ flight[7] }}</td>
-                  <td><button class="reserve-btn">예약</button></td>
+                  <td>
+                    <form method="POST" action="{{ url_for('make_reservation_route') }}">
+                      <input type="hidden" name="flight_no" value="{{ flight[1] }}">
+                      <input type="hidden" name="departure_datetime" value="{{ flight[4] }}">
+                      <input type="hidden" name="seat_class" value="{{ flight[8] }}">
+                      <button type="submit" class="reserve-btn" onclick="return confirm('예약하시겠습니까?')">예약</button>
+                    </form>
+                  </td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -85,6 +92,13 @@
       </main>
     </div>
   <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  <script>
+  const message = "{{ request.args.get('message') }}";
+  if (message && message !== "None") {
+    alert(decodeURIComponent(message));
+  }
+  </script>
+
 
 </body>
 </html>

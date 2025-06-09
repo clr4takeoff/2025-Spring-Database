@@ -1,5 +1,5 @@
-from flask import Flask, request, redirect, render_template, url_for, session
-from db_utils import get_connection, verify_user, get_flights, get_user_reservations, is_admin, get_cancel_ratio, get_payment_rank, cancel_reservation
+from flask import Flask, request, redirect, render_template, url_for, session, Response
+from db_utils import get_connection, verify_user, get_flights, get_user_reservations, is_admin, get_cancel_ratio, get_payment_rank, cancel_reservation, make_reservation
 from urllib.parse import quote
 
 app = Flask(__name__)
@@ -38,12 +38,14 @@ def flight_search():
         return redirect(url_for('login'))
 
     filters = {
-        'departure': request.args.get('departure'),
-        'arrival': request.args.get('arrival'),
-        'date': request.args.get('date'),
-        'seat_class': request.args.get('seat_class'),
-        'sort_by': request.args.get('sort_by')
+    'departure': request.args.get('departure'),
+    'arrival': request.args.get('arrival'),
+    'date': request.args.get('date'),
+    'seat_class': request.args.get('seat_class'),
+    'sort_by': request.args.get('sort_by'),
+    'cno': session['cno'] 
     }
+
 
     flights = get_flights(cursor, filters)
     return render_template('flight_search.html', flights=flights, name=session['name'])
@@ -76,12 +78,33 @@ def flight_check():
 
     return render_template('flight_check.html', reservations=reservations, message=message)
 
+@app.route('/make_reservation', methods=['POST'])
+def make_reservation_route():
+    if 'cno' not in session:
+        return redirect(url_for('login'))
+
+    flight_no = request.form['flight_no']
+    departure_datetime = request.form['departure_datetime']
+    seat_class = request.form['seat_class']
+    cno = session['cno']
+
+    success, msg = make_reservation(flight_no, departure_datetime, seat_class, cno)
+
+    if success:
+        return redirect(url_for('flight_check', msg=quote(msg)))
+    else:
+        # error.html 대신 JS 팝업으로 처리
+        return Response(f"""
+            <script>alert("{msg}"); window.history.back();</script>
+        """, mimetype='text/html')
 
 
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
+
+
 
 
 @app.route('/admin')

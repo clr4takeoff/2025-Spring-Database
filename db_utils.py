@@ -36,12 +36,12 @@ def get_flights(cursor, filters):
             a.airline, a.flightNo, a.departureAirport, a.arrivalAirport,
             TO_CHAR(a.departureDateTime, 'YYYY-MM-DD HH24:MI'),
             TO_CHAR(a.arrivalDateTime, 'YYYY-MM-DD HH24:MI'),
-            s.price, s.no_of_seats
+            s.price, s.no_of_seats, s.seatClass
         FROM AIRPLANE a
         JOIN SEATS s ON a.flightNo = s.flightNo AND a.departureDateTime = s.departureDateTime
         WHERE 1=1
     """
-    params = {}
+    params = {'cno': filters.get('cno')}
 
     if filters.get("departure"):
         query += " AND a.departureAirport = :departure"
@@ -58,6 +58,17 @@ def get_flights(cursor, filters):
     if filters.get("seat_class"):
         query += " AND s.seatClass = :seat_class"
         params["seat_class"] = filters["seat_class"]
+
+    # 중복 예약 제거
+    query += """
+        AND NOT EXISTS (
+            SELECT 1 FROM RESERVE r
+            WHERE r.flightNo = a.flightNo
+              AND r.departureDateTime = a.departureDateTime
+              AND r.seatClass = s.seatClass
+              AND r.cno = :cno
+        )
+    """
 
     sort_by = filters.get("sort_by")
     if sort_by == 'price':
@@ -280,12 +291,81 @@ def cancel_reservation(flight_no, departure_datetime_str, cno):
         conn.commit()
 
         # 사용자에게 보여줄 메시지
-        msg = f"예약이 취소되었습니다.\n총 결제금액: {payment:,}원\n취소 수수료: {fee:,}원\n환불 금액: {refund:,}원"
+        msg = f"예약이 취소되었습니다.\n총 결제금액: {payment:,}원\n취소 수수료: {fee:,}달러\n환불 금액: {refund:,}달러"
         return True, msg
 
     except Exception as e:
         conn.rollback()
         return False, f"오류 발생: {str(e)}"
+    finally:
+        cur.close()
+        conn.close()
+
+
+def make_reservation(flight_no, departure_datetime_str, seat_class, cno):
+    from datetime import datetime
+
+    reserve_datetime = datetime.now()
+    conn = get_connection()
+    cur = conn.cursor()
+
+    try:
+        print("[DEBUG] flight_no:", flight_no)
+        print("[DEBUG] departure_datetime_str:", departure_datetime_str)
+        print("[DEBUG] seat_class:", seat_class)
+
+        if len(departure_datetime_str) == 16:
+            departure_datetime_str += ":00"
+
+        cur.execute("""
+            SELECT price, no_of_seats FROM SEATS
+            WHERE flightNo = :flight_no 
+              AND departureDateTime = TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI:SS') 
+              AND seatClass = :seat_class
+        """, {
+            'flight_no': flight_no,
+            'departure_datetime': departure_datetime_str,
+            'seat_class': seat_class
+        })
+
+        row = cur.fetchone()
+        if not row:
+            return False, "해당 좌석 정보를 찾을 수 없습니다."
+
+        price, available_seats = row
+        if available_seats <= 0:
+            return False, "해당 클래스의 좌석이 매진되었습니다."
+
+        cur.execute("""
+            INSERT INTO RESERVE (flightNo, departureDateTime, seatClass, payment, reserveDateTime, cno)
+            VALUES (:flight_no, TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI:SS'), :seat_class, :payment, TO_TIMESTAMP(:reserve_time, 'YYYY-MM-DD HH24:MI:SS'), :cno)
+        """, {
+            'flight_no': flight_no,
+            'departure_datetime': departure_datetime_str,
+            'seat_class': seat_class,
+            'payment': price,
+            'reserve_time': reserve_datetime.strftime('%Y-%m-%d %H:%M:%S'),
+            'cno': cno
+        })
+
+        cur.execute("""
+            UPDATE SEATS
+            SET no_of_seats = no_of_seats - 1
+            WHERE flightNo = :flight_no 
+              AND departureDateTime = TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI:SS') 
+              AND seatClass = :seat_class
+        """, {
+            'flight_no': flight_no,
+            'departure_datetime': departure_datetime_str,
+            'seat_class': seat_class
+        })
+
+        conn.commit()
+        return True, "예약이 완료되었습니다."
+
+    except Exception as e:
+        conn.rollback()
+        return False, f"예약 중 오류 발생: {str(e)}"
     finally:
         cur.close()
         conn.close()
