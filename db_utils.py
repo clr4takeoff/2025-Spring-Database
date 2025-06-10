@@ -1,5 +1,12 @@
 import oracledb
+import smtplib
+import os
 from datetime import datetime,  timedelta
+from email.mime.text import MIMEText
+from email.utils import formataddr
+from dotenv import load_dotenv
+
+
 
 def get_connection():
     return oracledb.connect(
@@ -13,17 +20,12 @@ def verify_user(email, password):
     conn = get_connection()
     cur = conn.cursor()
 
-    print("[DEBUG] 입력된 email:", email)
-    print("[DEBUG] 입력된 password:", password)
-
     query = """
-        SELECT cno, name FROM CUSTOMER 
+        SELECT cno, name, email FROM CUSTOMER 
         WHERE email = :email AND passwd = :passwd
     """
     cur.execute(query, {'email': email, 'passwd': password})
     result = cur.fetchone()
-
-    print("[DEBUG] 쿼리 결과:", result)
 
     cur.close()
     conn.close()
@@ -369,3 +371,89 @@ def make_reservation(flight_no, departure_datetime_str, seat_class, cno):
     finally:
         cur.close()
         conn.close()
+
+
+def process_reservation_request(flight_no, departure_datetime, seat_class, cno, user_name, user_email):
+    """
+    예약 처리 후 이메일 전송까지 담당하는 함수.
+    """
+    success, msg = make_reservation(flight_no, departure_datetime, seat_class, cno)
+
+    if not success:
+        return False, msg
+
+    # 항공편 상세 정보 확보
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT 
+            a.airline, a.departureAirport, a.arrivalAirport,
+            TO_CHAR(a.departureDateTime, 'YYYY-MM-DD HH24:MI'),
+            TO_CHAR(a.arrivalDateTime, 'YYYY-MM-DD HH24:MI'),
+            s.price
+        FROM AIRPLANE a
+        JOIN SEATS s ON a.flightNo = s.flightNo AND a.departureDateTime = s.departureDateTime
+        WHERE a.flightNo = :flight_no AND a.departureDateTime = TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI')
+              AND s.seatClass = :seat_class
+    """, {
+        'flight_no': flight_no,
+        'departure_datetime': departure_datetime,
+        'seat_class': seat_class
+    })
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+
+    if row and user_email:
+        flight_info = {
+            'airline': row[0],
+            'flight_no': flight_no,
+            'departure_airport': row[1],
+            'arrival_airport': row[2],
+            'departure_time': row[3],
+            'arrival_time': row[4],
+            'seat_class': seat_class,
+            'price': row[5]
+        }
+
+        email_success, email_msg = send_reservation_email(user_email, user_name, flight_info)
+        print("[EMAIL]", email_msg)
+
+    return True, msg
+
+def send_reservation_email(to_email, name, flight_info):
+    try:
+        load_dotenv()  # .env 파일에서 환경변수 로딩
+        smtp_user = os.getenv('SMTP_USER')
+        smtp_pass = os.getenv('SMTP_PASS')
+        sender_name = "C-AIR"
+
+        subject = f"[예약 확인] {flight_info['airline']} 항공편 예약 완료"
+        body = f"""
+        {name} 고객님, 항공편 예약이 완료되었습니다.
+
+        - 항공사: {flight_info['airline']}
+        - 항공편 번호: {flight_info['flight_no']}
+        - 출발지: {flight_info['departure_airport']}
+        - 도착지: {flight_info['arrival_airport']}
+        - 출발 시간: {flight_info['departure_time']}
+        - 도착 시간: {flight_info['arrival_time']}
+        - 좌석 클래스: {flight_info['seat_class']}
+        - 결제 금액: {flight_info['price']:,}원
+
+        감사합니다.
+        """
+
+        msg = MIMEText(body, 'plain', 'utf-8')
+        msg['Subject'] = subject
+        msg['From'] = formataddr((sender_name, smtp_user))
+        msg['To'] = to_email
+
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(smtp_user, smtp_pass)
+            server.send_message(msg)
+
+        return True, f"{to_email} 주소로 이메일을 전송했습니다."
+
+    except Exception as e:
+        return False, f"이메일 전송 실패: {str(e)}"

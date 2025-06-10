@@ -31,7 +31,7 @@ CREATE TABLE CUSTOMER (
  cno VARCHAR(10),
  name VARCHAR(100) NOT NULL,
  passwd VARCHAR(100) NOT NULL,
- email VARCHAR(20) NOT NULL,
+ email VARCHAR(50) NOT NULL,
  passportNumber VARCHAR(9),
  CONSTRAINT pk_customer PRIMARY KEY(cno)
 );

@@ -1,5 +1,5 @@
 from flask import Flask, request, redirect, render_template, url_for, session, Response
-from db_utils import get_connection, verify_user, get_flights, get_user_reservations, is_admin, get_cancel_ratio, get_payment_rank, cancel_reservation, make_reservation
+from db_utils import get_connection, verify_user, get_flights, get_user_reservations, is_admin, get_cancel_ratio, get_payment_rank, cancel_reservation, make_reservation, process_reservation_request
 from urllib.parse import quote
 
 app = Flask(__name__)
@@ -26,6 +26,7 @@ def login():
 
     session['cno'] = user[0]
     session['name'] = user[1]
+    session['email'] = user[2]
 
     if is_admin(user[0]):
         return redirect(url_for('admin_page'))
@@ -78,6 +79,9 @@ def flight_check():
 
     return render_template('flight_check.html', reservations=reservations, message=message)
 
+
+
+
 @app.route('/make_reservation', methods=['POST'])
 def make_reservation_route():
     if 'cno' not in session:
@@ -87,16 +91,22 @@ def make_reservation_route():
     departure_datetime = request.form['departure_datetime']
     seat_class = request.form['seat_class']
     cno = session['cno']
+    user_name = session.get('name')
+    user_email = session.get('email')
 
-    success, msg = make_reservation(flight_no, departure_datetime, seat_class, cno)
+    success, msg = process_reservation_request(
+        flight_no, departure_datetime, seat_class,
+        cno, user_name, user_email
+    )
 
     if success:
         return redirect(url_for('flight_check', msg=quote(msg)))
     else:
-        # error.html 대신 JS 팝업으로 처리
         return Response(f"""
             <script>alert("{msg}"); window.history.back();</script>
-        """, mimetype='text/html')
+        """, mimetype='text/html')  
+
+
 
 
 @app.route('/logout')
