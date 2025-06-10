@@ -1,56 +1,58 @@
-/* 전체 페이지 중앙 정렬 */
+/* 전체 페이지 중앙 정렬 및 배경 설정 */
 body {
   background-color: #fff;
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  height: 100vh;                         /* 전체 화면 높이 확보 */
+  display: flex;                         /* 중앙 정렬 위한 플렉스 박스 */
+  justify-content: center;              /* 가로 중앙 */
+  align-items: center;                  /* 세로 중앙 */
 }
 
-/* 로그인 박스 */
+/* 로그인 전체 박스 */
 .login-wrapper {
   width: 100%;
-  max-width: 500px;
-  text-align: center;
+  max-width: 500px;                     /* 최대 너비 제한 */
+  text-align: center;                   /* 가운데 정렬 */
 }
 
+/* 상단 타이틀 */
 .login-wrapper h1 {
   font-size: 24px;
   font-weight: bold;
   margin-bottom: 40px;
 }
 
-/* 로그인 폼: 입력칸 + 버튼 가로 정렬 */
+/* 로그인 폼 영역 (입력 칸 + 버튼 나란히 배치) */
 .login-form {
   display: flex;
-  align-items: stretch;  /* 버튼 높이 자동 맞춤 */
-  justify-content: center;
-  gap: 20px;
+  align-items: stretch;                 /* 버튼 높이를 입력칸과 맞춤 */
+  justify-content: center;              /* 가운데 정렬 */
+  gap: 20px;                             /* 입력칸과 버튼 사이 간격 */
 }
 
-/* 입력 필드만 세로 정렬 */
+/* 입력 칸 묶음은 세로 정렬 */
 .form-inputs {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  flex: 1;
+  gap: 15px;                             /* 이메일/비밀번호 입력칸 사이 간격 */
+  flex: 1;                               /* 남은 공간 전부 차지 */
 }
 
+/* 개별 input 스타일 */
 .form-inputs input {
   padding: 14px;
   border: 1px solid #333;
   border-radius: 14px;
   font-size: 14px;
   width: 100%;
-  box-sizing: border-box;
+  box-sizing: border-box;               /* 패딩 포함 너비 계산 */
 }
 
-/* 로그인 버튼 - 정사각형 (높이 = 입력칸 2개 합) */
+/* 로그인 버튼 스타일 */
 .login-form button {
-  width: 80px;
+  width: 80px;                          /* 고정 너비 (정사각형 느낌) */
   background-color: #ddd;
   border: none;
   border-radius: 14px;
@@ -59,12 +61,12 @@ body {
   cursor: pointer;
 }
 
-/* 버튼 hover */
+/* 버튼 hover 효과 */
 .login-form button:hover {
   background-color: #bbb;
 }
 
-/* 하단 박스 (회색 공간) */
+/* 하단 회색 영역 (예: 설명, 링크, 이미지 등 용도) */
 .login-footer {
   margin-top: 40px;
   height: 100px;

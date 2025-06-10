@@ -3,15 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <title>항공권 검색/예약</title>
+
+  <!-- 스타일시트 연결 -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/flight_search.css') }}">
 </head>
 <body>
   <div class="container">
+    
+    <!-- 상단 헤더 영역 -->
     <header>
         <h2>CNU Airline Reservation Web</h2>
         <div class="user-info">
             <span><strong>{{ session.name }}</strong>님, 환영합니다.</span>
+
+            <!-- 예약 내역으로 이동 -->
             <a href="{{ url_for('flight_check') }}" class="nav-btn">예약 내역</a>
+
+            <!-- 로그아웃 버튼 -->
             <a href="{{ url_for('logout') }}" class="logout-btn" onclick="return confirmLogout()">LOGOUT</a>
         </div>
     </header>
@@ -19,14 +27,19 @@
     <main>
       <h1>항공권 검색/예약 ✈️</h1>
 
+      <!-- 항공권 검색 폼 -->
       <form class="search-form" method="GET" action="{{ url_for('flight_search') }}">
+        
+        <!-- 출발/도착 공항 입력 -->
         <div class="form-row">
             <input type="text" name="departure" placeholder="출발 공항 입력 (예: JFK)">
             <input type="text" name="arrival" placeholder="도착 공항 입력 (예: ICN)">
         </div>
+
+        <!-- 출발일, 좌석, 정렬 기준 선택 -->
         <div class="form-row single-line">
             <input type="text" name="date" placeholder="출발 날짜 입력">
-            
+
             <select name="seat_class">
               <option value="">-- 좌석 선택 --</option>
               <option value="Economy">이코노미</option>
@@ -43,66 +56,71 @@
         </div>
       </form>
 
+      <!-- 검색 결과 테이블 -->
+      <div class="table-wrapper">
+        
+        <!-- 테이블 헤더 (고정) -->
+        <table class="result-table header-table">
+          <thead>
+            <tr>
+              <th>번호</th>
+              <th>항공사명</th>
+              <th>운항편명</th>
+              <th>출발공항</th>
+              <th>도착공항</th>
+              <th>출발날짜시간</th>
+              <th>도착날짜시간</th>
+              <th>좌석 등급</th>
+              <th>요금(원)</th>
+              <th>남은 좌석 수</th>
+              <th>예약</th>
+            </tr>
+          </thead>
+        </table>
 
-        <div class="table-wrapper">
-          <table class="result-table header-table">
-            <thead>
+        <!-- 테이블 바디 (스크롤 영역) -->
+        <div class="scroll-body">
+          <table class="result-table body-table">
+            <tbody>
+              {% for flight in flights %}
               <tr>
-                <th>번호</th>
-                <th>항공사명</th>
-                <th>운항편명</th>
-                <th>출발공항</th>
-                <th>도착공항</th>
-                <th>출발날짜시간</th>
-                <th>도착날짜시간</th>
-                <th>좌석 등급</th>
-                <th>요금(원)</th>
-                <th>남은 좌석 수</th>
-                <th>예약</th>
+                <td>{{ loop.index }}</td>       <!-- 순번 -->
+                <td>{{ flight[0] }}</td>        <!-- 항공사명 -->
+                <td>{{ flight[1] }}</td>        <!-- 운항편명 -->
+                <td>{{ flight[2] }}</td>        <!-- 출발공항 -->
+                <td>{{ flight[3] }}</td>        <!-- 도착공항 -->
+                <td>{{ flight[4] }}</td>        <!-- 출발시간 -->
+                <td>{{ flight[5] }}</td>        <!-- 도착시간 -->
+                <td>{{ flight[8] }}</td>        <!-- 좌석 등급 -->
+                <td>{{ flight[6] }}</td>        <!-- 요금 -->
+                <td>{{ flight[7] }}</td>        <!-- 남은 좌석 수 -->
+                <td>
+                  <!-- 예약 요청 폼 -->
+                  <form method="POST" action="{{ url_for('make_reservation_route') }}">
+                    <input type="hidden" name="flight_no" value="{{ flight[1] }}">
+                    <input type="hidden" name="departure_datetime" value="{{ flight[4] }}">
+                    <input type="hidden" name="seat_class" value="{{ flight[8] }}">
+                    <button type="submit" class="reserve-btn" onclick="return confirm('예약하시겠습니까?')">예약</button>
+                  </form>
+                </td>
               </tr>
-            </thead>
+              {% endfor %}
+            </tbody>
           </table>
-
-          <div class="scroll-body">
-            <table class="result-table body-table">
-              <tbody>
-                {% for flight in flights %}
-                <tr>
-                  <td>{{ loop.index }}</td> <!-- 순번 -->
-                  <td>{{ flight[0] }}</td>  <!-- airline -->
-                  <td>{{ flight[1] }}</td>  <!-- flightNo -->
-                  <td>{{ flight[2] }}</td>  <!-- departureAirport -->
-                  <td>{{ flight[3] }}</td>  <!-- arrivalAirport -->
-                  <td>{{ flight[4] }}</td>  <!-- departureDateTime -->
-                  <td>{{ flight[5] }}</td>  <!-- arrivalDateTime -->
-                  <td>{{ flight[8] }}</td>  <!-- seatClass -->
-                  <td>{{ flight[6] }}</td>  <!-- price -->
-                  <td>{{ flight[7] }}</td>  <!-- no_of_seats -->
-                  <td>
-                    <form method="POST" action="{{ url_for('make_reservation_route') }}">
-                      <input type="hidden" name="flight_no" value="{{ flight[1] }}">
-                      <input type="hidden" name="departure_datetime" value="{{ flight[4] }}">
-                      <input type="hidden" name="seat_class" value="{{ flight[8] }}">
-                      <button type="submit" class="reserve-btn" onclick="return confirm('예약하시겠습니까?')">예약</button>
-                    </form>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
         </div>
+      </div>
+    </main>
+  </div>
 
-      </main>
-    </div>
+  <!-- 자바스크립트 파일 로드 -->
   <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+  <!-- URL 파라미터에 메시지가 있으면 알림 표시 -->
   <script>
   const message = "{{ request.args.get('message') }}";
   if (message && message !== "None") {
     alert(decodeURIComponent(message));
   }
   </script>
-
-
 </body>
 </html>

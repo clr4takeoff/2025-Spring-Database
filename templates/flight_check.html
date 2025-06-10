@@ -3,29 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <title>항공권 예약내역 조회 / 취소</title>
+
+  <!-- CSS 연결 -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/flight_check.css') }}">
 </head>
 <body>
+  <!-- 팝업 메시지를 위한 숨겨진 input (자바스크립트에서 활용) -->
   <input type="hidden" id="popup-message" value="{{ popup_message or '' }}">
+
   <div class="container">
+    <!-- 상단 헤더 영역 -->
     <header>
       <h2>CNU Airline Reservation Web</h2>
       <div class="user-info">
         <span><strong>{{ session.name }}</strong>님, 환영합니다.</span>
+        
+        <!-- 항공권 검색으로 이동 -->
         <a href="{{ url_for('flight_search') }}" class="nav-btn">항공권 검색</a>
+        
+        <!-- 로그아웃 버튼 -->
         <a href="{{ url_for('logout') }}" class="logout-btn" onclick="return confirmLogout()">LOGOUT</a>
       </div>
     </header>
 
     <main>
       <h1>항공권 예약내역 조회 / 취소 📃</h1>
+
+      <!-- 검색 폼 -->
       <form class="search-form" method="get" action="{{ url_for('flight_check') }}">
+        <!-- 날짜 필터 -->
         <div class="form-row">
           <label>기간 설정 (예약/취소일)</label>
           <input type="date" name="start_date" value="{{ request.args.get('start_date', '') }}">
           <span>~</span>
           <input type="date" name="end_date" value="{{ request.args.get('end_date', '') }}">
         </div>
+
+        <!-- 내역 구분 필터 -->
         <div class="form-row">
           <label>내역 구분</label>
           <select name="view_type">
@@ -36,7 +50,10 @@
         </div>
       </form>
 
+      <!-- 결과 테이블 -->
       <div class="table-wrapper">
+
+        <!-- 테이블 헤더 (고정) -->
         <table class="result-table header-table">
           <thead>
             <tr>
@@ -50,7 +67,8 @@
               <th>좌석 등급</th>
               <th>금액</th>
               <th>예약일시</th>
-              
+
+              <!-- 뷰 타입에 따라 취소 버튼 또는 취소일시 출력 -->
               {% if request.args.get('view_type', 'all') != 'cancel' %}
                 <th>취소</th>
               {% else %}
@@ -60,22 +78,26 @@
           </thead>
         </table>
 
+        <!-- 스크롤 가능한 테이블 바디 -->
         <div class="scroll-body">
           <table class="result-table body-table">
             <tbody>
               {% if reservations %}
+                <!-- 예약 데이터 반복 출력 -->
                 {% for r in reservations %}
                   <tr>
                     <td>{{ loop.index }}</td> <!-- 순번 -->
-                    <td>{{ r[0] }}</td>  <!-- 항공사명 -->
-                    <td>{{ r[1] }}</td>  <!-- 운항편명 -->
-                    <td>{{ r[2] }}</td>
-                    <td>{{ r[3] }}</td>
-                    <td>{{ r[4] }}</td>
-                    <td>{{ r[5] }}</td>
-                    <td>{{ r[6] }}</td>  <!-- 좌석 등급 -->
-                    <td>{{ "{:,}".format(r[7]) }}</td> <!-- 금액 -->
-                    <td>{{ r[8] }}</td>  <!-- 예약일시 -->
+                    <td>{{ r[0] }}</td>        <!-- 항공사명 -->
+                    <td>{{ r[1] }}</td>        <!-- 운항편명 -->
+                    <td>{{ r[2] }}</td>        <!-- 출발공항 -->
+                    <td>{{ r[3] }}</td>        <!-- 도착공항 -->
+                    <td>{{ r[4] }}</td>        <!-- 출발날짜시간 -->
+                    <td>{{ r[5] }}</td>        <!-- 도착날짜시간 -->
+                    <td>{{ r[6] }}</td>        <!-- 좌석 등급 -->
+                    <td>{{ "{:,}".format(r[7]) }}</td> <!-- 금액 (콤마 포맷) -->
+                    <td>{{ r[8] }}</td>        <!-- 예약일시 -->
+
+                    <!-- 예약 상태일 경우 취소 버튼 -->
                     {% if r[9] == '예약' %}
                       <td>
                         <form action="{{ url_for('flight_check') }}" method="post" onsubmit="return confirm('예약을 취소하시겠습니까?');">
@@ -85,11 +107,13 @@
                         </form>
                       </td>
                     {% else %}
-                      <td>{{ r[10] }}</td> <!-- 취소일시 -->
+                      <!-- 취소 내역일 경우 취소일시 표시 -->
+                      <td>{{ r[10] }}</td>
                     {% endif %}
                   </tr>
                 {% endfor %}
               {% else %}
+                <!-- 조회된 데이터가 없을 경우 메시지 표시 -->
                 <tr><td colspan="11">조회된 내역이 없습니다.</td></tr>
               {% endif %}
             </tbody>
@@ -98,14 +122,18 @@
       </div>
     </main>
   </div>
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
-<script>
-  const urlParams = new URLSearchParams(window.location.search);
-  const msg = urlParams.get("msg");
 
-  if (msg) {
-    alert(decodeURIComponent(msg));
-  }
-</script>
+  <!-- 공통 스크립트 로드 -->
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+  <!-- URL에 msg 파라미터가 있을 경우 알림창 표시 -->
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const msg = urlParams.get("msg");
+
+    if (msg) {
+      alert(decodeURIComponent(msg));
+    }
+  </script>
 </body>
 </html>

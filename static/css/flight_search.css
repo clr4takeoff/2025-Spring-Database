@@ -1,3 +1,4 @@
+/* 기본 레이아웃 스타일 */
 body {
   font-family: Arial, sans-serif;
   background: #fff;
@@ -11,6 +12,7 @@ body {
   padding: 0 20px;
 }
 
+/* 헤더 구성 */
 header {
   display: flex;
   justify-content: space-between;
@@ -20,12 +22,14 @@ header {
   margin-bottom: 20px;
 }
 
+/* 사용자 정보 (이름 + 버튼들) */
 .user-info {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
+/* 로그아웃 버튼 - 병합됨 */
 .logout-btn {
   background: #ddd;
   border: none;
@@ -33,13 +37,40 @@ header {
   border-radius: 12px;
   font-weight: bold;
   cursor: pointer;
+  text-decoration: none;
+  color: black;
+  display: inline-block;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+.logout-btn:hover {
+  background-color: #bbb;
+  color: white;
+}
+
+/* 네비게이션 버튼 (예약 내역 등) */
+.nav-btn {
+  background-color: #c1baff;
+  color: #000;
+  padding: 8px 16px;
+  margin-left: 10px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: bold;
+  border: none;
+}
+
+.nav-btn:hover {
+  background-color: #bbabd8;
+}
+
+/* 제목 스타일 */
 main h1 {
   margin-top: 30px;
   margin-bottom: 20px;
 }
 
+/* 항공편 검색 폼 */
 .search-form {
   display: flex;
   flex-direction: column;
@@ -47,11 +78,13 @@ main h1 {
   margin-bottom: 30px;
 }
 
+/* 폼 한 줄 구성용 */
 .form-row {
   display: flex;
   gap: 10px;
 }
 
+/* input/select/button 공통 스타일 (한 줄 형태) */
 .form-row.single-line input,
 .form-row.single-line select,
 .form-row.single-line button {
@@ -63,6 +96,7 @@ main h1 {
   box-sizing: border-box;
 }
 
+/* 입력 필드 크기 지정 */
 .form-row.single-line input {
   width: 200px;
 }
@@ -83,6 +117,7 @@ main h1 {
   background-color: #bbb;
 }
 
+/* 일반 입력 필드 */
 .search-form input,
 .search-form select {
   padding: 10px;
@@ -92,6 +127,7 @@ main h1 {
   font-size: 14px;
 }
 
+/* 일반 검색 버튼 */
 .search-form button {
   padding: 10px 20px;
   background-color: #ddd;
@@ -101,12 +137,13 @@ main h1 {
   cursor: pointer;
 }
 
+/* 테이블 전체 감싸는 wrapper */
 .table-wrapper {
   border: 1px solid #ccc;
   margin-top: 20px;
 }
 
-/* 고정 헤더 테이블 */
+/* 테이블 헤더 스타일 */
 .header-table {
   width: 100%;
   border-collapse: collapse;
@@ -120,22 +157,10 @@ main h1 {
   border: 1px solid #ddd;
   padding: 10px;
   text-align: center;
-}
-
-.header-table th {
   font-size: 12px;
 }
 
-.body-table td {
-  font-size: 12px;
-}
-
-/* 스크롤 영역 */
-.scroll-body {
-  max-height: 440px;
-  overflow-y: auto;
-}
-
+/* 테이블 바디 셀 스타일 */
 .body-table {
   width: 100%;
   border-collapse: collapse;
@@ -143,21 +168,21 @@ main h1 {
 }
 
 .body-table td {
+  font-size: 12px;
   border: 1px solid #ddd;
   padding: 8px;
   text-align: center;
   word-wrap: break-word;
+  background-color: #fff;
 }
 
-
-/* 예: 예약 버튼 스타일 */
-.reserve-btn {
-  padding: 6px 10px;
-  cursor: pointer;
+/* 테이블 스크롤 영역 */
+.scroll-body {
+  max-height: 440px;
+  overflow-y: auto;
 }
 
-
-
+/* 예약 버튼 - 병합됨 */
 .reserve-btn {
   padding: 6px 12px;
   border: none;
@@ -165,38 +190,4 @@ main h1 {
   border-radius: 10px;
   font-weight: bold;
   cursor: pointer;
-}
-
-.nav-btn {
-  background-color: #c1baff;
-  color: #000;
-  padding: 8px 16px;
-  margin-left: 10px;
-  border-radius: 12px;
-  text-decoration: none;
-  font-weight: bold;
-  border: none;
-}
-
-.nav-btn:hover {
-  background-color: #bbabd8;
-}
-
-
-.logout-btn {
-  background: #ddd;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  text-decoration: none;
-  color: black;
-  display: inline-block;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.logout-btn:hover {
-  background-color: #bbb;
-  color: white;
 }

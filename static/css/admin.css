@@ -1,3 +1,4 @@
+/* 기본 바디 스타일 설정 */
 body {
   font-family: Arial, sans-serif;
   background: #fff;
@@ -5,12 +6,14 @@ body {
   padding: 0;
 }
 
+/* 콘텐츠 최대 너비 및 중앙 정렬 */
 .container {
   max-width: 960px;
   margin: 40px auto;
   padding: 0 20px;
 }
 
+/* 상단 헤더 레이아웃 */
 header {
   display: flex;
   justify-content: space-between;
@@ -18,57 +21,16 @@ header {
   border-bottom: 1px solid #ccc;
   padding-bottom: 10px;
   margin-bottom: 20px;
-
 }
 
+/* 사용자 정보(이름, 버튼 등) 정렬 */
 .user-info {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.logout-btn {
-  background: #ddd;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 12px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-main h1 {
-  margin-top: 30px;
-  margin-bottom: 40px;
-}
-
-.filters {
-  margin-bottom: 40px;
-}
-
-.filter-buttons {
-  display: flex;
-  gap: 16px;
-  margin-top: 10px;
-}
-
-.filter-buttons button {
-  background: #ddd;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 16px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.filter-buttons button:hover {
-  background-color: #bbb;
-}
-
-.results h3 {
-  margin-bottom: 10px;
-}
-
-
+/* 로그아웃 버튼 기본 스타일 */
 .logout-btn {
   background: #ddd;
   border: none;
@@ -82,28 +44,71 @@ main h1 {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* 로그아웃 버튼 hover 시 효과 */
 .logout-btn:hover {
   background-color: #bbb;
   color: white;
 }
 
+/* 페이지 제목 스타일 */
+main h1 {
+  margin-top: 30px;
+  margin-bottom: 40px;
+}
+
+/* 필터 섹션 마진 */
+.filters {
+  margin-bottom: 40px;
+}
+
+/* 필터 버튼 정렬 */
+.filter-buttons {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+/* 필터 버튼 스타일 */
+.filter-buttons button {
+  background: #ddd;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* 필터 버튼 hover 시 효과 */
+.filter-buttons button:hover {
+  background-color: #bbb;
+}
+
+/* 결과 섹션 제목 마진 */
+.results h3 {
+  margin-bottom: 10px;
+}
+
+/* 테이블 전체 감싸는 박스 (테두리 및 둥근 모서리) */
 .table-wrapper {
   border: 1px solid #ccc;
   border-radius: 8px;
   overflow: hidden;
 }
 
+/* 테이블 내용 스크롤 제한 높이 설정 */
 .scroll-body {
   max-height: 300px;
   overflow-y: auto;
 }
 
+/* 공통 테이블 스타일 */
 .result-table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
 }
 
+/* 헤더 셀과 바디 셀 공통 스타일 */
 .header-table th,
 .body-table td {
   border: 1px solid #ccc;
@@ -112,6 +117,7 @@ main h1 {
   white-space: nowrap;
 }
 
+/* 테이블 헤더 배경색 지정 */
 .header-table th {
   background-color: #f2f2f2;
 }

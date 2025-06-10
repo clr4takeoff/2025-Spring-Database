@@ -1,13 +1,13 @@
-import oracledb
-import smtplib
+# 필요한 모듈 불러오기
+import oracledb  # Oracle 데이터베이스 연결용
+import smtplib  # 이메일 전송용
 import os
-from datetime import datetime,  timedelta
+from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from email.utils import formataddr
-from dotenv import load_dotenv
+from dotenv import load_dotenv  # 환경변수 로딩용
 
-
-
+# 데이터베이스 연결 함수
 def get_connection():
     return oracledb.connect(
         user="TP",
@@ -15,7 +15,7 @@ def get_connection():
         dsn="localhost:1521/XE"
     )
 
-
+# 사용자 로그인 인증
 def verify_user(email, password):
     conn = get_connection()
     cur = conn.cursor()
@@ -31,7 +31,7 @@ def verify_user(email, password):
     conn.close()
     return result
 
-
+# 조건에 맞는 항공편 조회
 def get_flights(cursor, filters):
     query = """
         SELECT 
@@ -43,25 +43,23 @@ def get_flights(cursor, filters):
         JOIN SEATS s ON a.flightNo = s.flightNo AND a.departureDateTime = s.departureDateTime
         WHERE 1=1
     """
-    params = {'cno': filters.get('cno')}
+    params = {'cno': filters.get('cno')}  # 사용자 번호
 
+    # 필터 조건 추가
     if filters.get("departure"):
         query += " AND a.departureAirport = :departure"
         params["departure"] = filters["departure"]
-
     if filters.get("arrival"):
         query += " AND a.arrivalAirport = :arrival"
         params["arrival"] = filters["arrival"]
-
     if filters.get("date"):
         query += " AND TO_CHAR(a.departureDateTime, 'YYYY.MM.DD.') = :date"
         params["date"] = filters["date"]
-
     if filters.get("seat_class"):
         query += " AND s.seatClass = :seat_class"
         params["seat_class"] = filters["seat_class"]
 
-    # 중복 예약 제거
+    # 중복 예약 제거 조건
     query += """
         AND NOT EXISTS (
             SELECT 1 FROM RESERVE r
@@ -72,6 +70,7 @@ def get_flights(cursor, filters):
         )
     """
 
+    # 정렬 조건
     sort_by = filters.get("sort_by")
     if sort_by == 'price':
         query += " ORDER BY s.price"
@@ -83,7 +82,7 @@ def get_flights(cursor, filters):
     cursor.execute(query, params)
     return cursor.fetchall()
 
-
+# 사용자 예약 목록 조회
 def get_reservations(cursor, cno):
     query = """
         SELECT 
@@ -103,16 +102,14 @@ def get_reservations(cursor, cno):
     cursor.execute(query, {'cno': cno})
     return cursor.fetchall()
 
+# 예약 및 취소 내역 통합 조회 (필터 포함)
 def get_user_reservations(cno, start_date, end_date, view_type):
-    from datetime import datetime, timedelta
-
     conn = get_connection()
     cur = conn.cursor()
 
     params = {'cno': cno}
     queries = []
 
-    # 날짜 파라미터 처리
     has_date_filter = bool(start_date and end_date)
     if has_date_filter:
         try:
@@ -124,7 +121,7 @@ def get_user_reservations(cno, start_date, end_date, view_type):
             print("[DEBUG] 날짜 형식 오류:", start_date, end_date)
             return []
 
-    # 예약 내역 쿼리
+    # 예약 내역
     if view_type in ('all', 'reserve'):
         reserve_query = """
             SELECT 
@@ -143,7 +140,7 @@ def get_user_reservations(cno, start_date, end_date, view_type):
             reserve_query += " AND r.reserveDateTime BETWEEN :start_date AND :end_date"
         queries.append(reserve_query)
 
-    # 취소 내역 쿼리
+    # 취소 내역
     if view_type in ('all', 'cancel'):
         cancel_query = """
             SELECT 
@@ -167,9 +164,6 @@ def get_user_reservations(cno, start_date, end_date, view_type):
 
     full_query = " UNION ALL ".join(queries) + " ORDER BY 5"
 
-    print("[DEBUG] 최종 쿼리:", full_query)
-    print("[DEBUG] 바인딩 파라미터:", params)
-
     cur.execute(full_query, params)
     results = cur.fetchall()
 
@@ -177,12 +171,11 @@ def get_user_reservations(cno, start_date, end_date, view_type):
     conn.close()
     return results
 
-
-
+# 관리자 여부 확인
 def is_admin(cno):
-    return cno.startswith('C0')
+    return cno.startswith('C0')  # 고객번호가 'C0'으로 시작하면 관리자
 
-
+# 고객별 예약 취소율 조회
 def get_cancel_ratio():
     conn = get_connection()
     cur = conn.cursor()
@@ -206,7 +199,7 @@ def get_cancel_ratio():
     conn.close()
     return result
 
-
+# 고객별 예약 금액 순위 조회
 def get_payment_rank():
     conn = get_connection()
     cur = conn.cursor()
@@ -227,17 +220,24 @@ def get_payment_rank():
     return result
 
 def cancel_reservation(flight_no, departure_datetime_str, cno):
+    """
+    예약 취소 함수.
+    주어진 항공편 번호, 출발일시, 고객 번호를 기반으로 예약을 취소하고, 
+    취소 수수료를 계산하여 환불을 처리한다.
+    """
     from datetime import datetime
     conn = get_connection()
     cur = conn.cursor()
 
     try:
+        # 출발 시간이 현재보다 이전이면 취소 불가
         departure_datetime = datetime.strptime(departure_datetime_str, "%Y-%m-%d %H:%M")
         now = datetime.now()
 
         if departure_datetime < now:
             return False, "이미 출발한 항공편은 취소할 수 없습니다."
 
+        # 예약 정보 조회
         cur.execute("""
             SELECT seatClass, payment
             FROM RESERVE
@@ -254,7 +254,7 @@ def cancel_reservation(flight_no, departure_datetime_str, cno):
 
         seat_class, payment = row
 
-        # 수수료 계산
+        # 취소 수수료 계산
         days_diff = (departure_datetime.date() - now.date()).days
         if days_diff >= 15:
             fee = 150000
@@ -262,13 +262,13 @@ def cancel_reservation(flight_no, departure_datetime_str, cno):
             fee = 180000
         elif 1 <= days_diff <= 3:
             fee = 250000
-        else:  # same-day
-            fee = payment  # 전액 수수료
+        else:  # same-day 취소 시 전액 수수료
+            fee = payment
         refund = max(0, payment - fee)
 
         now_str = now.strftime("%Y-%m-%d %H:%M:%S")
 
-        # INSERT into CANCEL
+        # 취소 테이블에 기록
         cur.execute("""
             INSERT INTO CANCEL (flightNo, departureDateTime, seatClass, refund, cancelDateTime, cno)
             VALUES (:flight_no, TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI'), :seat_class, :refund, TO_TIMESTAMP(:cancel_time, 'YYYY-MM-DD HH24:MI:SS'), :cno)
@@ -281,7 +281,7 @@ def cancel_reservation(flight_no, departure_datetime_str, cno):
             'cno': cno
         })
 
-        # DELETE from RESERVE
+        # 예약 테이블에서 삭제
         cur.execute("""
             DELETE FROM RESERVE
             WHERE flightNo = :flight_no AND departureDateTime = TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI') AND seatClass = :seat_class AND cno = :cno
@@ -294,7 +294,7 @@ def cancel_reservation(flight_no, departure_datetime_str, cno):
 
         conn.commit()
 
-        # 사용자에게 보여줄 메시지
+        # 사용자에게 반환할 메시지
         msg = f"예약이 취소되었습니다.\n총 결제금액: {payment:,}원\n취소 수수료: {fee:,}원\n환불 금액: {refund:,}원"
         return True, msg
 
@@ -307,6 +307,10 @@ def cancel_reservation(flight_no, departure_datetime_str, cno):
 
 
 def make_reservation(flight_no, departure_datetime_str, seat_class, cno):
+    """
+    항공편 예약 함수.
+    좌석 정보를 확인 후 예약 테이블에 저장하고, 좌석 수를 감소시킨다.
+    """
     from datetime import datetime
 
     reserve_datetime = datetime.now()
@@ -314,13 +318,16 @@ def make_reservation(flight_no, departure_datetime_str, seat_class, cno):
     cur = conn.cursor()
 
     try:
+        # 디버깅 로그
         print("[DEBUG] flight_no:", flight_no)
         print("[DEBUG] departure_datetime_str:", departure_datetime_str)
         print("[DEBUG] seat_class:", seat_class)
 
+        # 시간 문자열 포맷 보정
         if len(departure_datetime_str) == 16:
             departure_datetime_str += ":00"
 
+        # 좌석 정보 조회
         cur.execute("""
             SELECT price, no_of_seats FROM SEATS
             WHERE flightNo = :flight_no 
@@ -340,6 +347,7 @@ def make_reservation(flight_no, departure_datetime_str, seat_class, cno):
         if available_seats <= 0:
             return False, "해당 클래스의 좌석이 매진되었습니다."
 
+        # 예약 테이블에 삽입
         cur.execute("""
             INSERT INTO RESERVE (flightNo, departureDateTime, seatClass, payment, reserveDateTime, cno)
             VALUES (:flight_no, TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI:SS'), :seat_class, :payment, TO_TIMESTAMP(:reserve_time, 'YYYY-MM-DD HH24:MI:SS'), :cno)
@@ -352,6 +360,7 @@ def make_reservation(flight_no, departure_datetime_str, seat_class, cno):
             'cno': cno
         })
 
+        # 좌석 수 감소
         cur.execute("""
             UPDATE SEATS
             SET no_of_seats = no_of_seats - 1
@@ -378,13 +387,14 @@ def make_reservation(flight_no, departure_datetime_str, seat_class, cno):
 def process_reservation_request(flight_no, departure_datetime, seat_class, cno, user_name, user_email):
     """
     예약 처리 후 이메일 전송까지 담당하는 함수.
+    예약 성공 시 예약 정보를 이메일로 전송한다.
     """
     success, msg = make_reservation(flight_no, departure_datetime, seat_class, cno)
 
     if not success:
         return False, msg
 
-    # 항공편 상세 정보 확보
+    # 항공편 상세 정보 조회
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
@@ -406,6 +416,7 @@ def process_reservation_request(flight_no, departure_datetime, seat_class, cno, 
     cur.close()
     conn.close()
 
+    # 이메일 전송
     if row and user_email:
         flight_info = {
             'airline': row[0],
@@ -423,13 +434,18 @@ def process_reservation_request(flight_no, departure_datetime, seat_class, cno, 
 
     return True, msg
 
+
 def send_reservation_email(to_email, name, flight_info):
+    """
+    예약 완료 이메일을 전송하는 함수.
+    """
     try:
-        load_dotenv()  # .env 파일에서 환경변수 로딩
+        load_dotenv()  # 환경 변수 로드 (.env 파일)
         smtp_user = os.getenv('SMTP_USER')
         smtp_pass = os.getenv('SMTP_PASS')
         sender_name = "C-AIR"
 
+        # 메일 제목 및 본문 생성
         subject = f"[예약 확인] {flight_info['airline']} 항공편 예약 완료"
         body = f"""
         {name} 고객님, 항공편 예약이 완료되었습니다.
@@ -446,11 +462,13 @@ def send_reservation_email(to_email, name, flight_info):
         감사합니다.
         """
 
+        # 메일 메시지 구성
         msg = MIMEText(body, 'plain', 'utf-8')
         msg['Subject'] = subject
         msg['From'] = formataddr((sender_name, smtp_user))
         msg['To'] = to_email
 
+        # SMTP 서버를 통해 이메일 발송
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
             server.login(smtp_user, smtp_pass)
             server.send_message(msg)

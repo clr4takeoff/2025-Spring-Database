@@ -3,12 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <title>예약/취소 통계 조회</title>
+  
+  <!-- 관리자 페이지용 CSS 파일 연결 -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 </head>
 <body>
   <div class="container">
+    
+    <!-- 페이지 상단 헤더 영역 -->
     <header>
       <h2>CNU Airline Reservation Web</h2>
+
+      <!-- 로그인한 사용자 정보 및 로그아웃 버튼 -->
       <div class="user-info">
         <span><strong>{{ session.name }}</strong>님, 환영합니다.</span>
         <a href="{{ url_for('logout') }}" class="logout-btn" onclick="return confirmLogout()">LOGOUT</a>
@@ -16,63 +22,76 @@
     </header>
 
     <main>
+      <!-- 페이지 제목 -->
       <h1>예약/취소 통계 조회 👀</h1>
 
+      <!-- 필터 버튼 영역 -->
       <section class="filters">
           <h3>필터 설정</h3>
-            <div class="filter-buttons">
-              <a href="{{ url_for('admin_page', view='cancel') }}"><button>취소율 조회</button></a>
-              <a href="{{ url_for('admin_page', view='payment') }}"><button>고객별 결제금액 순위</button></a>
-            </div>
+          <div class="filter-buttons">
+            <!-- 취소율 조회 버튼 -->
+            <a href="{{ url_for('admin_page', view='cancel') }}">
+              <button>취소율 조회</button>
+            </a>
+            <!-- 고객별 결제금액 순위 버튼 -->
+            <a href="{{ url_for('admin_page', view='payment') }}">
+              <button>고객별 결제금액 순위</button>
+            </a>
+          </div>
       </section>
 
-        <section class="results">
-          <h3>결과</h3>
-          <div class="result-box">
-            <table class="result-table">
-              <div class="result-box">
-                <!-- 헤더 테이블 -->
-                <table class="result-table header-table">
-                  <thead>
-                    {% if view == 'cancel' %}
-                    <tr>
-                      <th>고객번호</th>
-                      <th>이름</th>
-                      <th>예약건수</th>
-                      <th>취소건수</th>
-                      <th>취소율</th>
-                    </tr>
-                    {% elif view == 'payment' %}
-                    <tr>
-                      <th>고객번호</th>
-                      <th>예약일시</th>
-                      <th>결제금액</th>
-                      <th>결제순위</th>
-                    </tr>
-                    {% endif %}
-                  </thead>
-                </table>
+      <!-- 결과 출력 영역 -->
+      <section class="results">
+        <h3>결과</h3>
 
-                <!-- 바디 테이블 (스크롤 적용) -->
-                <div class="scroll-body">
-                  <table class="result-table body-table">
-                    <tbody>
-                      {% for row in results %}
-                      <tr>
-                        {% for col in row %}
-                        <td>{{ col }}</td>
-                        {% endfor %}
-                      </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+        <div class="result-box">
 
-        </section>
+          <!-- 결과 테이블 (헤더) -->
+          <table class="result-table header-table">
+            <thead>
+              {% if view == 'cancel' %}
+              <!-- 취소율 조회일 경우 보여줄 헤더 -->
+              <tr>
+                <th>고객번호</th>
+                <th>이름</th>
+                <th>예약건수</th>
+                <th>취소건수</th>
+                <th>취소율</th>
+              </tr>
+              {% elif view == 'payment' %}
+              <!-- 결제금액 순위일 경우 보여줄 헤더 -->
+              <tr>
+                <th>고객번호</th>
+                <th>예약일시</th>
+                <th>결제금액</th>
+                <th>결제순위</th>
+              </tr>
+              {% endif %}
+            </thead>
+          </table>
 
+          <!-- 결과 테이블 (내용) -->
+          <div class="scroll-body">
+            <table class="result-table body-table">
+              <tbody>
+                <!-- 결과 데이터 반복 출력 -->
+                {% for row in results %}
+                <tr>
+                  {% for col in row %}
+                  <td>{{ col }}</td>
+                  {% endfor %}
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </section>
     </main>
   </div>
+
+  <!-- JavaScript 파일 로드 -->
   <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 
 </body>

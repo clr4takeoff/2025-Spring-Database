@@ -1,3 +1,4 @@
+/* 전체 페이지 기본 설정 */
 body {
   font-family: Arial, sans-serif;
   background: #fff;
@@ -5,12 +6,14 @@ body {
   padding: 0;
 }
 
+/* 콘텐츠 컨테이너: 가운데 정렬 및 최대 너비 제한 */
 .container {
   max-width: 960px;
   margin: 40px auto;
   padding: 0 20px;
 }
 
+/* 상단 헤더 스타일 */
 header {
   display: flex;
   justify-content: space-between;
@@ -20,146 +23,14 @@ header {
   margin-bottom: 20px;
 }
 
+/* 사용자 정보 영역 (이름, 버튼들) */
 .user-info {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.logout-btn {
-  background: #ddd;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  text-decoration: none;
-  color: black;
-}
-
-.nav-btn {
-  background: #badbff;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  text-decoration: none;
-  color: black;
-}
-
-.logout-btn:hover {
-  background-color: #bbb;
-}
-
-.nav-btn:hover {
-  background-color: #a3c1dd;
-}
-
-main h1 {
-  margin-top: 30px;
-  margin-bottom: 20px;
-}
-
-.search-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 30px;
-}
-
-.form-row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.form-row input {
-  padding: 10px;
-  border: 1px solid #aaa;
-  border-radius: 14px;
-  font-size: 14px;
-  width: 220px;
-}
-
-.form-row span {
-  font-size: 18px;
-}
-
-.form-row button {
-  padding: 10px 20px;
-  background-color: #ddd;
-  border: none;
-  border-radius: 14px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.form-row button:hover {
-  background-color: #bbb;
-}
-
-/* 고정 헤더 테이블 */
-.header-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-  font-size: 15px;
-}
-
-.header-table th {
-  background-color: #f2f2f2;
-  font-weight: bold;
-  border: 1px solid #ddd;
-  padding: 10px;
-  text-align: center;
-}
-
-.header-table th {
-  font-size: 12px;
-}
-
-.body-table td {
-  font-size: 12px;
-}
-
-/* 예약 테이블 - 바디 스타일 */
-.body-table td {
-  border: 1px solid #ddd;
-  padding: 10px;
-  text-align: center;
-  background-color: #fff;
-  word-wrap: break-word;
-}
-
-/* 스크롤 영역 */
-.scroll-body {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-/* 공통 테이블 */
-.result-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-/* 취소 버튼 스타일 */
-.cancel-btn {
-  padding: 6px 12px;
-  background-color: #ccc;
-  border: none;
-  border-radius: 10px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.cancel-btn:hover {
-  background-color: #bbb;
-}
-
+/* 로그아웃 버튼 기본 스타일 */
 .logout-btn {
   background: #ddd;
   border: none;
@@ -173,11 +44,137 @@ main h1 {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* 로그아웃 버튼 hover 효과 */
 .logout-btn:hover {
   background-color: #bbb;
   color: white;
 }
 
+/* 예약 내역(네비게이션) 버튼 스타일 */
+.nav-btn {
+  background: #badbff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+  color: black;
+}
+
+/* 예약 내역 버튼 hover 효과 */
+.nav-btn:hover {
+  background-color: #a3c1dd;
+}
+
+/* 페이지 제목 마진 */
+main h1 {
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+/* 검색 폼 레이아웃 */
+.search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+/* 폼 내부 줄 정렬 */
+.form-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* 입력 필드 스타일 */
+.form-row input {
+  padding: 10px;
+  border: 1px solid #aaa;
+  border-radius: 14px;
+  font-size: 14px;
+  width: 220px;
+}
+
+/* 기간 구분 기호 스타일 */
+.form-row span {
+  font-size: 18px;
+}
+
+/* 폼 내 버튼 스타일 */
+.form-row button {
+  padding: 10px 20px;
+  background-color: #ddd;
+  border: none;
+  border-radius: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* 버튼 hover 효과 */
+.form-row button:hover {
+  background-color: #bbb;
+}
+
+/* 테이블 공통 설정 */
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+/* 고정된 헤더 테이블 */
+.header-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 15px;
+}
+
+/* 헤더 셀 스타일 */
+.header-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+  font-size: 12px;
+}
+
+/* 바디 테이블 셀 스타일 */
+.body-table td {
+  font-size: 12px;
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+  background-color: #fff;
+  word-wrap: break-word;
+}
+
+/* 스크롤이 적용되는 테이블 바디 영역 */
+.scroll-body {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* 예약 취소 버튼 */
+.cancel-btn {
+  padding: 6px 12px;
+  background-color: #ccc;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+/* 취소 버튼 hover 효과 */
+.cancel-btn:hover {
+  background-color: #bbb;
+}
+
+/* 드롭다운 셀렉트 스타일 */
 .form-row select {
   padding: 10px 16px;
   border: 1px solid #aaa;
@@ -194,6 +191,7 @@ main h1 {
   width: 240px;
 }
 
+/* 검색 버튼 스타일 (강조된 스타일) */
 .search-btn {
   background-color: #91afce !important;
   color: white !important;
@@ -204,6 +202,8 @@ main h1 {
   cursor: pointer;
   margin-top: 10px;
 }
+
+/* 검색 버튼 hover 효과 */
 .search-btn:hover {
   background-color: #4b7cb1 !important;
 }
