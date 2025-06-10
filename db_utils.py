@@ -196,6 +196,7 @@ def get_cancel_ratio():
     FROM CUSTOMER c
     LEFT JOIN RESERVE r ON c.cno = r.cno
     LEFT JOIN CANCEL ca ON c.cno = ca.cno
+    WHERE c.cno NOT LIKE 'C0%'
     GROUP BY c.cno, c.name
     ORDER BY cancel_ratio DESC NULLS LAST
     """
@@ -216,13 +217,14 @@ def get_payment_rank():
                ORDER BY r.payment DESC
            ) AS payment_rank
     FROM RESERVE r
+    JOIN CUSTOMER c ON r.cno = c.cno
+    WHERE c.cno NOT LIKE 'C0%'
     """
     cur.execute(query)
     result = cur.fetchall()
     cur.close()
     conn.close()
     return result
-
 
 def cancel_reservation(flight_no, departure_datetime_str, cno):
     from datetime import datetime
