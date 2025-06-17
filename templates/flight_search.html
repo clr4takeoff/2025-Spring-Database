@@ -82,32 +82,38 @@
         <div class="scroll-body">
           <table class="result-table body-table">
             <tbody>
-              {% for flight in flights %}
-              <tr>
-                <td>{{ loop.index }}</td>       <!-- 순번 -->
-                <td>{{ flight[0] }}</td>        <!-- 항공사명 -->
-                <td>{{ flight[1] }}</td>        <!-- 운항편명 -->
-                <td>{{ flight[2] }}</td>        <!-- 출발공항 -->
-                <td>{{ flight[3] }}</td>        <!-- 도착공항 -->
-                <td>{{ flight[4] }}</td>        <!-- 출발시간 -->
-                <td>{{ flight[5] }}</td>        <!-- 도착시간 -->
-                <td>{{ flight[8] }}</td>        <!-- 좌석 등급 -->
-                <td>{{ flight[6] }}</td>        <!-- 요금 -->
-                <td>{{ flight[7] }}</td>        <!-- 남은 좌석 수 -->
-                <td>
-                  <!-- 예약 요청 폼 -->
-                  <form method="POST" action="{{ url_for('make_reservation_route') }}">
-                    <input type="hidden" name="flight_no" value="{{ flight[1] }}">
-                    <input type="hidden" name="departure_datetime" value="{{ flight[4] }}">
-                    <input type="hidden" name="seat_class" value="{{ flight[8] }}">
-                    <button type="submit" class="reserve-btn" onclick="return confirm('예약하시겠습니까?')">예약</button>
-                  </form>
-                </td>
-              </tr>
-              {% endfor %}
+              {% if flights %}
+                {% for flight in flights %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ flight[0] }}</td>
+                  <td>{{ flight[1] }}</td>
+                  <td>{{ flight[2] }}</td>
+                  <td>{{ flight[3] }}</td>
+                  <td>{{ flight[4] }}</td>
+                  <td>{{ flight[5] }}</td>
+                  <td>{{ flight[8] }}</td>
+                  <td>{{ flight[6] }}</td>
+                  <td>{{ flight[7] }}</td>
+                  <td>
+                    <form method="POST" action="{{ url_for('make_reservation_route') }}">
+                      <input type="hidden" name="flight_no" value="{{ flight[1] }}">
+                      <input type="hidden" name="departure_datetime" value="{{ flight[4] }}">
+                      <input type="hidden" name="seat_class" value="{{ flight[8] }}">
+                      <button type="submit" class="reserve-btn" onclick="return confirm('예약하시겠습니까?')">예약</button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="11">조회된 항공편이 없습니다.</td>
+                </tr>
+              {% endif %}
             </tbody>
           </table>
         </div>
+
       </div>
     </main>
   </div>
