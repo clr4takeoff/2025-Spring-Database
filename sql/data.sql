@@ -168,3 +168,33 @@ INSERT INTO CANCEL VALUES ('HA104', TO_TIMESTAMP('2025-08-04 09:00:00', 'YYYY-MM
 INSERT INTO CANCEL VALUES ('KE011', TO_TIMESTAMP('2025-09-10 09:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'Economy', 296000, TO_TIMESTAMP('2025-05-29 10:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'C101');
 INSERT INTO CANCEL VALUES ('KE012', TO_TIMESTAMP('2025-09-11 09:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'Business', 1018000, TO_TIMESTAMP('2025-05-30 10:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'C101');
 commit;
+
+
+-- 좌석 0 테스트용 데이터 삽입
+-- 새로운 항공편 추가 (ICN -> HND)
+INSERT INTO AIRPLANE (
+  airline, flightNo, departureDateTime, arrivalDateTime,
+  departureAirport, arrivalAirport
+) VALUES (
+  'KAL', 'KE999',
+  TO_TIMESTAMP('2026-06-30 10:00:00', 'YYYY-MM-DD HH24:MI:SS'),
+  TO_TIMESTAMP('2026-06-30 14:00:00', 'YYYY-MM-DD HH24:MI:SS'),
+  'ICN', 'HND'
+);
+
+-- 해당 항공편의 좌석 정보 삽입 (잔여 좌석 0)
+INSERT INTO SEATS (
+  flightNo, departureDateTime, seatClass, price, no_of_seats
+) VALUES (
+  'KE999', TO_TIMESTAMP('2026-06-30 10:00:00', 'YYYY-MM-DD HH24:MI:SS'),
+  'Economy', 300000, 0
+);
+
+INSERT INTO SEATS (
+  flightNo, departureDateTime, seatClass, price, no_of_seats
+) VALUES (
+  'KE999', TO_TIMESTAMP('2026-06-30 10:00:00', 'YYYY-MM-DD HH24:MI:SS'),
+  'Business', 800000, 0
+);
+
+COMMIT;
