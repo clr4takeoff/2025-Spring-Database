@@ -191,3 +191,9 @@ main h1 {
   font-weight: bold;
   cursor: pointer;
 }
+
+/* 매진 항공권 처리 */
+.sold-out {
+  color: #999;
+  font-weight: bold;
+}
