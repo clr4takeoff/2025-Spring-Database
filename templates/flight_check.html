@@ -43,9 +43,14 @@
         <div class="form-row">
           <label>내역 구분</label>
           <select name="view_type">
-            <option value="all" {% if request.args.get('view_type') == 'all' %}selected{% endif %}>전체 내역</option>
-            <option value="reserve" {% if request.args.get('view_type') == 'reserve' %}selected{% endif %}>예약 내역</option>
-            <option value="cancel" {% if request.args.get('view_type') == 'cancel' %}selected{% endif %}>취소 내역</option>
+            <option value="all"
+              {% if request.args.get('view_type') == 'all' %}selected
+              {% elif request.args.get('view_type') is none %} {% if view_type == 'all' %}selected{% endif %}
+              {% endif %}>전체 내역</option>
+            <option value="reserve"
+              {% if request.args.get('view_type') == 'reserve' or request.args.get('view_type') is none %}selected{% endif %}>예약 내역</option>
+            <option value="cancel"
+              {% if request.args.get('view_type') == 'cancel' %}selected{% endif %}>취소 내역</option>
           </select>
           <button type="submit" class="search-btn">검색</button>
         </div>

@@ -194,6 +194,6 @@ main h1 {
 
 /* 매진 항공권 처리 */
 .sold-out {
-  color: #999;
+  color: #ff1717;
   font-weight: bold;
 }
