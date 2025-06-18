@@ -45,6 +45,7 @@ def get_flights(cursor, filters):
         FROM AIRPLANE a
         JOIN SEATS s ON a.flightNo = s.flightNo AND a.departureDateTime = s.departureDateTime
         WHERE 1=1
+        AND a.departureDateTime > SYSTIMESTAMP
     """
 
     params = {'cno': filters.get('cno')}  # 사용자 번호
