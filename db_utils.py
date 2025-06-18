@@ -1,6 +1,7 @@
 # 필요한 모듈 불러오기
 import oracledb  # Oracle 데이터베이스 연결용
 import smtplib  # 이메일 전송용
+import uuid # 고유 ID 비교용
 import os
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
@@ -38,11 +39,14 @@ def get_flights(cursor, filters):
             a.airline, a.flightNo, a.departureAirport, a.arrivalAirport,
             TO_CHAR(a.departureDateTime, 'YYYY-MM-DD HH24:MI'),
             TO_CHAR(a.arrivalDateTime, 'YYYY-MM-DD HH24:MI'),
-            s.price, s.no_of_seats, s.seatClass
+            s.price,
+            GET_REMAINING_SEATS(s.flightNo, s.departureDateTime, s.seatClass) AS remaining_seats,
+            s.seatClass
         FROM AIRPLANE a
         JOIN SEATS s ON a.flightNo = s.flightNo AND a.departureDateTime = s.departureDateTime
         WHERE 1=1
     """
+
     params = {'cno': filters.get('cno')}  # 사용자 번호
 
     # 필터 조건 추가
@@ -230,18 +234,22 @@ def cancel_reservation(flight_no, departure_datetime_str, cno):
     cur = conn.cursor()
 
     try:
+        print("[DEBUG] 사용자 정보 확인 - cno:", cno)
+
         # 출발 시간이 현재보다 이전이면 취소 불가
         departure_datetime = datetime.strptime(departure_datetime_str, "%Y-%m-%d %H:%M")
         now = datetime.now()
 
         if departure_datetime < now:
             return False, "이미 출발한 항공편은 취소할 수 없습니다."
+        
 
         # 예약 정보 조회
         cur.execute("""
-            SELECT seatClass, payment
+            SELECT reserveId, seatClass, payment
             FROM RESERVE
-            WHERE flightNo = :flight_no AND departureDateTime = TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI') AND cno = :cno
+            WHERE flightNo = :flight_no AND departureDateTime = TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI') 
+                AND cno = :cno
         """, {
             'flight_no': flight_no,
             'departure_datetime': departure_datetime_str,
@@ -252,7 +260,17 @@ def cancel_reservation(flight_no, departure_datetime_str, cno):
         if not row:
             return False, "예약 정보를 찾을 수 없습니다."
 
-        seat_class, payment = row
+        reserve_id, seat_class, payment = row
+
+        # 중복 취소 확인
+        reserve_id, seat_class, payment = row
+
+        cur.execute("""
+            SELECT 1 FROM CANCEL WHERE reserveId = :reserve_id
+        """, {'reserve_id': reserve_id})
+        if cur.fetchone():
+            return False, "이미 취소된 예약입니다."
+
 
         # 취소 수수료 계산
         days_diff = (departure_datetime.date() - now.date()).days
@@ -270,9 +288,11 @@ def cancel_reservation(flight_no, departure_datetime_str, cno):
 
         # 취소 테이블에 기록
         cur.execute("""
-            INSERT INTO CANCEL (flightNo, departureDateTime, seatClass, refund, cancelDateTime, cno)
-            VALUES (:flight_no, TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI'), :seat_class, :refund, TO_TIMESTAMP(:cancel_time, 'YYYY-MM-DD HH24:MI:SS'), :cno)
+            INSERT INTO CANCEL (reserveId, flightNo, departureDateTime, seatClass, refund, cancelDateTime, cno)
+            VALUES (:reserve_id, :flight_no, TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI'), 
+                    :seat_class, :refund, TO_TIMESTAMP(:cancel_time, 'YYYY-MM-DD HH24:MI:SS'), :cno)
         """, {
+            'reserve_id': reserve_id,
             'flight_no': flight_no,
             'departure_datetime': departure_datetime_str,
             'seat_class': seat_class,
@@ -309,27 +329,39 @@ def cancel_reservation(flight_no, departure_datetime_str, cno):
 def make_reservation(flight_no, departure_datetime_str, seat_class, cno):
     """
     항공편 예약 함수.
-    좌석 정보를 확인 후 예약 테이블에 저장하고, 좌석 수를 감소시킨다.
+    좌석 정보를 확인 후 예약 테이블에 저장한다.
+    잔여 좌석 계산은 Oracle Stored Function에 위임.
     """
     from datetime import datetime
+    reserve_id = str(uuid.uuid4())[:20] 
 
     reserve_datetime = datetime.now()
     conn = get_connection()
     cur = conn.cursor()
 
     try:
-        # 디버깅 로그
-        print("[DEBUG] flight_no:", flight_no)
-        print("[DEBUG] departure_datetime_str:", departure_datetime_str)
-        print("[DEBUG] seat_class:", seat_class)
-
         # 시간 문자열 포맷 보정
         if len(departure_datetime_str) == 16:
             departure_datetime_str += ":00"
 
-        # 좌석 정보 조회
+        # 잔여 좌석 확인
         cur.execute("""
-            SELECT price, no_of_seats FROM SEATS
+            SELECT GET_REMAINING_SEATS(:flight_no, TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI:SS'), :seat_class)
+            FROM dual
+        """, {
+            'flight_no': flight_no,
+            'departure_datetime': departure_datetime_str,
+            'seat_class': seat_class
+        })
+        row = cur.fetchone()
+        remaining_seats = row[0] if row else 0
+
+        if remaining_seats <= 0:
+            return False, "해당 클래스의 좌석이 매진되었습니다."
+
+        # 가격 조회
+        cur.execute("""
+            SELECT price FROM SEATS
             WHERE flightNo = :flight_no 
               AND departureDateTime = TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI:SS') 
               AND seatClass = :seat_class
@@ -338,39 +370,24 @@ def make_reservation(flight_no, departure_datetime_str, seat_class, cno):
             'departure_datetime': departure_datetime_str,
             'seat_class': seat_class
         })
-
-        row = cur.fetchone()
-        if not row:
+        price_row = cur.fetchone()
+        if not price_row:
             return False, "해당 좌석 정보를 찾을 수 없습니다."
-
-        price, available_seats = row
-        if available_seats <= 0:
-            return False, "해당 클래스의 좌석이 매진되었습니다."
+        price = price_row[0]
 
         # 예약 테이블에 삽입
         cur.execute("""
-            INSERT INTO RESERVE (flightNo, departureDateTime, seatClass, payment, reserveDateTime, cno)
-            VALUES (:flight_no, TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI:SS'), :seat_class, :payment, TO_TIMESTAMP(:reserve_time, 'YYYY-MM-DD HH24:MI:SS'), :cno)
+            INSERT INTO RESERVE (reserveId, flightNo, departureDateTime, seatClass, payment, reserveDateTime, cno)
+            VALUES (:reserve_id, :flight_no, TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI:SS'),
+                    :seat_class, :payment, TO_TIMESTAMP(:reserve_time, 'YYYY-MM-DD HH24:MI:SS'), :cno)
         """, {
+            'reserve_id': reserve_id,
             'flight_no': flight_no,
             'departure_datetime': departure_datetime_str,
             'seat_class': seat_class,
             'payment': price,
             'reserve_time': reserve_datetime.strftime('%Y-%m-%d %H:%M:%S'),
             'cno': cno
-        })
-
-        # 좌석 수 감소
-        cur.execute("""
-            UPDATE SEATS
-            SET no_of_seats = no_of_seats - 1
-            WHERE flightNo = :flight_no 
-              AND departureDateTime = TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI:SS') 
-              AND seatClass = :seat_class
-        """, {
-            'flight_no': flight_no,
-            'departure_datetime': departure_datetime_str,
-            'seat_class': seat_class
         })
 
         conn.commit()
@@ -382,6 +399,7 @@ def make_reservation(flight_no, departure_datetime_str, seat_class, cno):
     finally:
         cur.close()
         conn.close()
+
 
 
 def process_reservation_request(flight_no, departure_datetime, seat_class, cno, user_name, user_email):
