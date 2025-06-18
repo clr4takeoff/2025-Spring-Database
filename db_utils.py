@@ -332,7 +332,7 @@ def make_reservation(flight_no, departure_datetime_str, seat_class, cno):
     잔여 좌석 계산은 Oracle Stored Function에 위임.
     """
     from datetime import datetime
-    reserve_id = str(uuid.uuid4())[:20] 
+    reserve_id = str(uuid.uuid4())
 
     reserve_datetime = datetime.now()
     conn = get_connection()

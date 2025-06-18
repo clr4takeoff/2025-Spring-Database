@@ -37,7 +37,7 @@ CREATE TABLE CUSTOMER (
 );
 
 CREATE TABLE RESERVE (
- reserveId VARCHAR2(20) UNIQUE, -- CANCEL 테이블 중복추가 문제 해결 위해 추가함
+ reserveId VARCHAR2(36) UNIQUE, -- CANCEL 테이블 중복추가 문제 해결 위해 추가함
  flightNo VARCHAR(10),
  departureDateTime TIMESTAMP,
  seatClass VARCHAR(10), 
@@ -52,7 +52,7 @@ CREATE TABLE RESERVE (
 );
 
 CREATE TABLE CANCEL (
-  reserveId VARCHAR2(20),
+  reserveId VARCHAR2(36),
   flightNo VARCHAR(10),
   departureDateTime TIMESTAMP,
   seatClass VARCHAR(10), 
