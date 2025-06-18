@@ -343,6 +343,24 @@ def make_reservation(flight_no, departure_datetime_str, seat_class, cno):
         # 시간 문자열 포맷 보정
         if len(departure_datetime_str) == 16:
             departure_datetime_str += ":00"
+        
+        # 중복 시간대 예약 여부 확인
+        cur.execute("""
+            SELECT 1
+            FROM RESERVE r
+            JOIN AIRPLANE a1 ON r.flightNo = a1.flightNo AND r.departureDateTime = a1.departureDateTime
+            JOIN AIRPLANE a2 ON a2.flightNo = :flight_no AND a2.departureDateTime = TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI:SS')
+            WHERE r.cno = :cno
+            AND a1.departureDateTime = a2.departureDateTime
+            AND a1.arrivalDateTime = a2.arrivalDateTime
+        """, {
+            'flight_no': flight_no,
+            'departure_datetime': departure_datetime_str,
+            'cno': cno
+        })
+        if cur.fetchone():
+            return False, "동일 시간대의 예약 노선이 이미 존재합니다. 중복 예약은 불가능합니다."
+
 
         # 잔여 좌석 확인
         cur.execute("""
