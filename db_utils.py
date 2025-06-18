@@ -75,13 +75,12 @@ def get_flights(cursor, filters):
     """
 
     # 정렬 조건
-    sort_by = filters.get("sort_by")
-    if sort_by == 'price':
-        query += " ORDER BY s.price"
-    elif sort_by == 'departure':
+    sort_by = filters.get("sort_by", "price") # 기본값은 가격
+
+    if sort_by == 'departure':
         query += " ORDER BY a.departureDateTime"
     else:
-        query += " ORDER BY a.departureDateTime"
+        query += " ORDER BY s.price"
 
     cursor.execute(query, params)
     return cursor.fetchall()
