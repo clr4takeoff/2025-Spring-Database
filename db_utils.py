@@ -109,22 +109,26 @@ def get_reservations(cursor, cno):
 
 # 예약 및 취소 내역 통합 조회 (필터 포함)
 def get_user_reservations(cno, start_date, end_date, view_type):
+    from datetime import datetime, timedelta
+
     conn = get_connection()
     cur = conn.cursor()
 
     params = {'cno': cno}
     queries = []
 
-    has_date_filter = bool(start_date and end_date)
-    if has_date_filter:
-        try:
-            start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
-            end_date_obj = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1) - timedelta(seconds=1)
-            params['start_date'] = start_date_obj
-            params['end_date'] = end_date_obj
-        except ValueError:
-            print("[DEBUG] 날짜 형식 오류:", start_date, end_date)
-            return []
+    # 날짜 필터 조건 파싱
+    start_dt_obj, end_dt_obj = None, None
+    try:
+        if start_date:
+            start_dt_obj = datetime.strptime(start_date, "%Y-%m-%d")
+            params['start_date'] = start_dt_obj
+        if end_date:
+            end_dt_obj = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1) - timedelta(seconds=1)
+            params['end_date'] = end_dt_obj
+    except ValueError:
+        print("[DEBUG] 날짜 형식 오류:", start_date, end_date)
+        return []
 
     # 예약 내역
     if view_type in ('all', 'reserve'):
@@ -141,8 +145,12 @@ def get_user_reservations(cno, start_date, end_date, view_type):
             JOIN AIRPLANE a ON r.flightNo = a.flightNo AND r.departureDateTime = a.departureDateTime
             WHERE r.cno = :cno
         """
-        if has_date_filter:
+        if start_dt_obj and end_dt_obj:
             reserve_query += " AND r.reserveDateTime BETWEEN :start_date AND :end_date"
+        elif start_dt_obj:
+            reserve_query += " AND r.reserveDateTime >= :start_date"
+        elif end_dt_obj:
+            reserve_query += " AND r.reserveDateTime <= :end_date"
         queries.append(reserve_query)
 
     # 취소 내역
@@ -160,13 +168,18 @@ def get_user_reservations(cno, start_date, end_date, view_type):
             JOIN AIRPLANE a ON c.flightNo = a.flightNo AND c.departureDateTime = a.departureDateTime
             WHERE c.cno = :cno
         """
-        if has_date_filter:
+        if start_dt_obj and end_dt_obj:
             cancel_query += " AND c.cancelDateTime BETWEEN :start_date AND :end_date"
+        elif start_dt_obj:
+            cancel_query += " AND c.cancelDateTime >= :start_date"
+        elif end_dt_obj:
+            cancel_query += " AND c.cancelDateTime <= :end_date"
         queries.append(cancel_query)
 
     if not queries:
         return []
 
+    # 결과 정렬: 출발일시 기준 (5번째 컬럼)
     full_query = " UNION ALL ".join(queries) + " ORDER BY 5"
 
     cur.execute(full_query, params)
@@ -175,6 +188,7 @@ def get_user_reservations(cno, start_date, end_date, view_type):
     cur.close()
     conn.close()
     return results
+
 
 # 관리자 여부 확인
 def is_admin(cno):

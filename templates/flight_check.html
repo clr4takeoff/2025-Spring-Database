@@ -8,6 +8,9 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/flight_check.css') }}">
 </head>
 <body>
+  {# 현재 페이지의 내역 구분(view_type)을 미리 설정해 조건 분기에서 사용 #}
+  {% set view_type = request.args.get('view_type', 'reserve') %}
+
   <!-- 팝업 메시지를 위한 숨겨진 input (자바스크립트에서 활용) -->
   <input type="hidden" id="popup-message" value="{{ popup_message or '' }}">
 
@@ -71,7 +74,16 @@
               <th>출발날짜시간</th>
               <th>도착날짜시간</th>
               <th>좌석 등급</th>
-              <th>금액</th>
+              <!-- 뷰 타입에 따라 금액 표시 컬럼명 변경 -->
+              <th>
+                {% if view_type == 'reserve' %}
+                  결제 금액
+                {% elif view_type == 'cancel' %}
+                  환불 금액
+                {% else %}
+                  결제/환불 금액
+                {% endif %}
+              </th>
               <th>예약일시</th>
 
               <!-- 뷰 타입에 따라 취소 버튼 또는 취소일시 출력 -->
