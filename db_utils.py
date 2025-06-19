@@ -115,17 +115,18 @@ def get_user_reservations(cno, start_date, end_date, view_type):
     cur = conn.cursor()
 
     params = {'cno': cno}
-    queries = []
+    results = []
 
     # 날짜 필터 조건 파싱
-    start_dt_obj, end_dt_obj = None, None
     try:
         if start_date:
             start_dt_obj = datetime.strptime(start_date, "%Y-%m-%d")
-            params['start_date'] = start_dt_obj
+        else:
+            start_dt_obj = None
         if end_date:
             end_dt_obj = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1) - timedelta(seconds=1)
-            params['end_date'] = end_dt_obj
+        else:
+            end_dt_obj = None
     except ValueError:
         print("[DEBUG] 날짜 형식 오류:", start_date, end_date)
         return []
@@ -147,11 +148,18 @@ def get_user_reservations(cno, start_date, end_date, view_type):
         """
         if start_dt_obj and end_dt_obj:
             reserve_query += " AND r.reserveDateTime BETWEEN :start_date AND :end_date"
+            reserve_params = {**params, 'start_date': start_dt_obj, 'end_date': end_dt_obj}
         elif start_dt_obj:
             reserve_query += " AND r.reserveDateTime >= :start_date"
+            reserve_params = {**params, 'start_date': start_dt_obj}
         elif end_dt_obj:
             reserve_query += " AND r.reserveDateTime <= :end_date"
-        queries.append(reserve_query)
+            reserve_params = {**params, 'end_date': end_dt_obj}
+        else:
+            reserve_params = params
+
+        cur.execute(reserve_query, reserve_params)
+        results += cur.fetchall()
 
     # 취소 내역
     if view_type in ('all', 'cancel'):
@@ -161,7 +169,7 @@ def get_user_reservations(cno, start_date, end_date, view_type):
                 TO_CHAR(a.departureDateTime, 'YYYY-MM-DD HH24:MI'),
                 TO_CHAR(a.arrivalDateTime, 'YYYY-MM-DD HH24:MI'),
                 c.seatClass, c.refund,
-                TO_CHAR(c.cancelDateTime, 'YYYY-MM-DD HH24:MI'),
+                TO_CHAR(c.reserveDateTime, 'YYYY-MM-DD HH24:MI'),
                 '취소',
                 TO_CHAR(c.cancelDateTime, 'YYYY-MM-DD HH24:MI')
             FROM CANCEL c
@@ -170,25 +178,26 @@ def get_user_reservations(cno, start_date, end_date, view_type):
         """
         if start_dt_obj and end_dt_obj:
             cancel_query += " AND c.cancelDateTime BETWEEN :start_date AND :end_date"
+            cancel_params = {**params, 'start_date': start_dt_obj, 'end_date': end_dt_obj}
         elif start_dt_obj:
             cancel_query += " AND c.cancelDateTime >= :start_date"
+            cancel_params = {**params, 'start_date': start_dt_obj}
         elif end_dt_obj:
             cancel_query += " AND c.cancelDateTime <= :end_date"
-        queries.append(cancel_query)
+            cancel_params = {**params, 'end_date': end_dt_obj}
+        else:
+            cancel_params = params
 
-    if not queries:
-        return []
-
-    # 결과 정렬: 출발일시 기준 (5번째 컬럼)
-    full_query = " UNION ALL ".join(queries) + " ORDER BY 5"
-
-    cur.execute(full_query, params)
-    results = cur.fetchall()
+        cur.execute(cancel_query, cancel_params)
+        results += cur.fetchall()
 
     cur.close()
     conn.close()
-    return results
 
+    # 출발일 기준 정렬 (5번째 컬럼: 출발일 TO_CHAR)
+    results.sort(key=lambda x: x[4])  # 문자열이기 때문에 정렬 가능
+
+    return results
 
 # 관리자 여부 확인
 def is_admin(cno):
@@ -335,52 +344,42 @@ def make_reservation(flight_no, departure_datetime_str, seat_class, cno):
 # 예약 취소 함수
 def cancel_reservation(flight_no, departure_datetime_str, cno):
     """
-    예약 취소 함수.
-    주어진 항공편 번호, 출발일시, 고객 번호를 기반으로 예약을 취소하고, 
-    취소 수수료를 계산하여 환불을 처리한다.
+    예약 취소 함수 (reserveDateTime을 CANCEL 테이블에 저장 포함).
     """
     from datetime import datetime
     conn = get_connection()
     cur = conn.cursor()
 
     try:
-        print("[DEBUG] 사용자 정보 확인 - cno:", cno)
-
-        # 출발 시간이 현재보다 이전이면 취소 불가
-        departure_datetime = datetime.strptime(departure_datetime_str, "%Y-%m-%d %H:%M")
         now = datetime.now()
+        departure_datetime = datetime.strptime(departure_datetime_str, "%Y-%m-%d %H:%M")
 
+        # 출발 시간이 지났으면 취소 불가
         if departure_datetime < now:
             return False, "이미 출발한 항공편은 취소할 수 없습니다."
-        
 
-        # 예약 정보 조회
+        # 예약 정보 조회 (reserveDateTime 포함)
         cur.execute("""
-            SELECT reserveId, seatClass, payment
+            SELECT reserveId, seatClass, payment, reserveDateTime
             FROM RESERVE
-            WHERE flightNo = :flight_no AND departureDateTime = TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI') 
-                AND cno = :cno
+            WHERE flightNo = :flight_no 
+              AND departureDateTime = TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI') 
+              AND cno = :cno
         """, {
             'flight_no': flight_no,
             'departure_datetime': departure_datetime_str,
             'cno': cno
         })
         row = cur.fetchone()
-
         if not row:
             return False, "예약 정보를 찾을 수 없습니다."
 
-        reserve_id, seat_class, payment = row
+        reserve_id, seat_class, payment, reserve_time = row
 
         # 중복 취소 확인
-        reserve_id, seat_class, payment = row
-
-        cur.execute("""
-            SELECT 1 FROM CANCEL WHERE reserveId = :reserve_id
-        """, {'reserve_id': reserve_id})
+        cur.execute("SELECT 1 FROM CANCEL WHERE reserveId = :reserve_id", {'reserve_id': reserve_id})
         if cur.fetchone():
             return False, "이미 취소된 예약입니다."
-
 
         # 취소 수수료 계산
         days_diff = (departure_datetime.date() - now.date()).days
@@ -390,17 +389,35 @@ def cancel_reservation(flight_no, departure_datetime_str, cno):
             fee = 180000
         elif 1 <= days_diff <= 3:
             fee = 250000
-        else:  # same-day 취소 시 전액 수수료
+        else:
             fee = payment
-        refund = max(0, payment - fee)
 
+        refund = max(0, payment - fee)
         now_str = now.strftime("%Y-%m-%d %H:%M:%S")
 
-        # 취소 테이블에 기록
+        # 항공편 정보 조회 (메시지에 사용)
         cur.execute("""
-            INSERT INTO CANCEL (reserveId, flightNo, departureDateTime, seatClass, refund, cancelDateTime, cno)
-            VALUES (:reserve_id, :flight_no, TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI'), 
-                    :seat_class, :refund, TO_TIMESTAMP(:cancel_time, 'YYYY-MM-DD HH24:MI:SS'), :cno)
+            SELECT airline, departureAirport, arrivalAirport
+            FROM AIRPLANE
+            WHERE flightNo = :flight_no 
+              AND departureDateTime = TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI')
+        """, {
+            'flight_no': flight_no,
+            'departure_datetime': departure_datetime_str
+        })
+        flight_info = cur.fetchone()
+
+        # CANCEL 테이블에 삽입 (reserveDateTime 포함)
+        cur.execute("""
+            INSERT INTO CANCEL (
+                reserveId, flightNo, departureDateTime, seatClass, refund,
+                cancelDateTime, cno, reserveDateTime
+            )
+            VALUES (
+                :reserve_id, :flight_no, TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI'), 
+                :seat_class, :refund, TO_TIMESTAMP(:cancel_time, 'YYYY-MM-DD HH24:MI:SS'), 
+                :cno, TO_TIMESTAMP(:reserve_time, 'YYYY-MM-DD HH24:MI:SS')
+            )
         """, {
             'reserve_id': reserve_id,
             'flight_no': flight_no,
@@ -408,13 +425,17 @@ def cancel_reservation(flight_no, departure_datetime_str, cno):
             'seat_class': seat_class,
             'refund': refund,
             'cancel_time': now_str,
-            'cno': cno
+            'cno': cno,
+            'reserve_time': reserve_time.strftime("%Y-%m-%d %H:%M:%S")
         })
 
-        # 예약 테이블에서 삭제
+        # RESERVE 테이블에서 삭제
         cur.execute("""
             DELETE FROM RESERVE
-            WHERE flightNo = :flight_no AND departureDateTime = TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI') AND seatClass = :seat_class AND cno = :cno
+            WHERE flightNo = :flight_no 
+              AND departureDateTime = TO_TIMESTAMP(:departure_datetime, 'YYYY-MM-DD HH24:MI') 
+              AND seatClass = :seat_class 
+              AND cno = :cno
         """, {
             'flight_no': flight_no,
             'departure_datetime': departure_datetime_str,
@@ -424,13 +445,32 @@ def cancel_reservation(flight_no, departure_datetime_str, cno):
 
         conn.commit()
 
-        # 사용자에게 반환할 메시지
-        msg = f"예약이 취소되었습니다.\n총 결제금액: {payment:,}원\n취소 수수료: {fee:,}원\n환불 금액: {refund:,}원"
+        # 메시지 출력
+        reserve_str = reserve_time.strftime('%Y-%m-%d %H:%M')
+        if flight_info:
+            airline, dep_airport, arr_airport = flight_info
+            msg = (
+                f"[{airline}] {flight_no}편 ({dep_airport} → {arr_airport}) 예약이 취소되었습니다.\n"
+                f"예약일시: {reserve_str}\n"
+                f"총 결제금액: {payment:,}원\n"
+                f"취소 수수료: {fee:,}원\n"
+                f"환불 금액: {refund:,}원"
+            )
+        else:
+            msg = (
+                f"{flight_no}편 예약이 취소되었습니다.\n"
+                f"예약일시: {reserve_str}\n"
+                f"총 결제금액: {payment:,}원\n"
+                f"취소 수수료: {fee:,}원\n"
+                f"환불 금액: {refund:,}원"
+            )
+
         return True, msg
 
     except Exception as e:
         conn.rollback()
         return False, f"오류 발생: {str(e)}"
+
     finally:
         cur.close()
         conn.close()

@@ -59,6 +59,7 @@ CREATE TABLE CANCEL (
   refund NUMBER NOT NULL,
   cancelDateTime TIMESTAMP NOT NULL,
   cno VARCHAR(10),
+  reserveDateTime TIMESTAMP,
   CONSTRAINT pk_cancel PRIMARY KEY (reserveId),
   CONSTRAINT fk_cancel1 FOREIGN KEY (flightNo, departureDateTime, seatClass) 
     REFERENCES SEATS(flightNo, departureDateTime, seatClass),
