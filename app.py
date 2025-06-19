@@ -4,6 +4,7 @@ from db_utils import (
     get_cancel_ratio, get_payment_rank, cancel_reservation, process_reservation_request
 )
 from urllib.parse import quote
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # 세션을 위한 비밀 키 설정
@@ -71,25 +72,39 @@ def flight_check():
 
     cno = session['cno']
 
-    # POST 요청 시 예약 취소 처리
+    # POST: 예약 취소 처리
     if request.method == 'POST':
         flight_no = request.form['flight_no']
         departure_datetime_str = request.form['departure_datetime']
-
         success, message = cancel_reservation(flight_no, departure_datetime_str, cno)
 
-        # 메시지를 URL 인코딩 후 쿼리스트링으로 전달
-        encoded_msg = quote(message)
-        return redirect(url_for('flight_check') + f"?msg={encoded_msg}")
+        # 메시지를 세션에 저장 후 리디렉션
+        session['popup_message'] = message
+        return redirect(url_for('flight_check'))
 
-    # GET 요청 시 예약 내역 조회
+    # GET: 예약/취소 내역 조회
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     view_type = request.args.get('view_type', 'reserve')
-    message = request.args.get('message', None)
+
+    # 세션에서 메시지 꺼내고 즉시 삭제 (한 번만 표시되도록)
+    message = session.pop('popup_message', None)
+
+    # 날짜 유효성 검사
+    if start_date and end_date:
+        try:
+            start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+            end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+            if end_dt < start_dt:
+                session['popup_message'] = "잘못된 날짜 범위입니다. 시작일은 종료일보다 이전이어야 합니다."
+                return redirect(url_for('flight_check', view_type=view_type))
+        except ValueError:
+            session['popup_message'] = "날짜 형식이 올바르지 않습니다."
+            return redirect(url_for('flight_check', view_type=view_type))
 
     reservations = get_user_reservations(cno, start_date, end_date, view_type)
-    return render_template('flight_check.html', reservations=reservations, message=message)
+    return render_template('flight_check.html', reservations=reservations, popup_message=message)
+
 
 # 항공편 예약 처리
 @app.route('/make_reservation', methods=['POST'])
