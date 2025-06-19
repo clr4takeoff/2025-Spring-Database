@@ -207,25 +207,31 @@ def is_admin(cno):
 def get_cancel_ratio():
     conn = get_connection()
     cur = conn.cursor()
+    
     query = """
-    SELECT c.cno, c.name,
+    SELECT 
+        CASE WHEN GROUPING(c.cno) = 1 THEN '전체' ELSE c.cno END AS cno,
+        CASE WHEN GROUPING(c.name) = 1 THEN '전체' ELSE c.name END AS name,
         COUNT(DISTINCT r.flightNo) AS total_reserves,
         COUNT(DISTINCT ca.flightNo) AS total_cancels,
-        CASE WHEN COUNT(DISTINCT r.flightNo) = 0 THEN 0
-             ELSE ROUND(COUNT(DISTINCT ca.flightNo) / COUNT(DISTINCT r.flightNo), 2)
+        CASE 
+            WHEN COUNT(DISTINCT r.flightNo) = 0 THEN 0
+            ELSE ROUND(COUNT(DISTINCT ca.flightNo) / COUNT(DISTINCT r.flightNo), 2)
         END AS cancel_ratio
     FROM CUSTOMER c
     LEFT JOIN RESERVE r ON c.cno = r.cno
     LEFT JOIN CANCEL ca ON c.cno = ca.cno
-    WHERE c.cno NOT LIKE 'C0%'
-    GROUP BY c.cno, c.name
-    ORDER BY cancel_ratio DESC NULLS LAST
+    WHERE c.cno NOT LIKE 'C0%'  -- 관리자 제외
+    GROUP BY GROUPING SETS ((c.cno, c.name), ())
+    ORDER BY GROUPING(c.cno), cancel_ratio DESC NULLS LAST
     """
+    
     cur.execute(query)
     result = cur.fetchall()
     cur.close()
     conn.close()
     return result
+
 
 # 고객별 예약 금액 순위 조회: admin 전용
 def get_payment_rank():
