@@ -59,8 +59,8 @@ def get_flights(cursor, filters):
         query += " AND a.arrivalAirport = :arrival"
         params["arrival"] = filters["arrival"]
     if filters.get("date"):
-        query += " AND TO_CHAR(a.departureDateTime, 'YYYY.MM.DD.') = :date"
-        params["date"] = filters["date"]
+        query += " AND TO_CHAR(a.departureDateTime, 'YYYY.MM.DD.') = :departure_date"
+        params["departure_date"] = filters["date"]
     if filters.get("seat_class"):
         query += " AND s.seatClass = :seat_class"
         params["seat_class"] = filters["seat_class"]
